@@ -1,14 +1,39 @@
 {
   "vars": {
-    "docker-pre-tag": "",
-    "namespace": "",
+    "docker-pre-tag": "eu.gcr.io/olm-rd/efm",
+    "namespace": "mazi",
     "startup-time": 0
   },
   "db": {
-    "reset": false
+    "reset": true
   },
   "kubernetes": {
     "deployments": {
+      "rabbitmq": true,
+      "daisy-app-deployment": true,
+      "eclipse-deployment": true,
+      "olmnginx-deployment": true,
+      "securityconfiguration-ms-deployment": true,
+      "catalogueitemtype-ms-deployment": true,
+      "contribution-ms-deployment": true,
+      "costamount-ms-deployment": true,
+      "efm-catalogue-app-deployment": true,
+      "efm-payment-app-deployment": true,
+      "financereference-ms-deployment": true,
+      "financialassessment-ms-deployment": true,
+      "fostercareapprovalmonitor-ms-deployment": true,
+      "gazetteer-ms-deployment": true,
+      "payment-ms-deployment": true,
+      "provider-ms-deployment": true,
+      "purchaseoption-ms-deployment": true,
+      "adjustment-ms-deployment": true,
+      "administration-ms-deployment": false,
+      "audit-ms-deployment": false,
+      "bandtemplate-ms-deployment": false,
+      "efm-financesummary-app-deployment": false,
+      "efm-financialassessment-app-deployment": false,
+      "notification-ms-deployment": false,
+      "efm-remittance-app-deployment": false
     },
     "scale": {
       "up": 30,
