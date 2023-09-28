@@ -9,6 +9,7 @@ from py_helper.models.project_model import ProjectModel
 from py_helper.models.runtime_var_model import RuntimeVarModel
 from py_helper.processor.commander import Commander
 from py_helper.processor.file_processor import FileProcessor
+from py_helper.processor.util_processor import UtilProcessor
 
 
 class KubernetesScript(OptionGroupModel):
@@ -19,6 +20,7 @@ class KubernetesScript(OptionGroupModel):
                 OptionModel(
                     "kdg", "Get Deployments", "Find deployments", self.get_deployments
                 ),
+                OptionModel('ksr', "Restart deployment", "", self.restart_deployment),
                 OptionModel("ksu", "Upscale in batch", "", self.scale_batch),
                 OptionModel(
                     "ksd", "Downscale in batch", "", lambda: self.scale_batch(down=True)
@@ -40,6 +42,19 @@ class KubernetesScript(OptionGroupModel):
                 ),
             ],
         )
+
+    def restart_deployment(self):
+        config_file = RuntimeVarModel.get_config_file()
+        config = RuntimeVarModel.get()
+        project = ProjectModel.find_active_project()
+        down_time = config_file["kubernetes"]["scale"]["down"]
+
+        # Downscale
+        cmd = "clear;"
+        cmd += f"kubectl scale -n {config.namespace} deployment {project.deployment_name} --replicas=0;"
+        cmd += UtilProcessor.count_down_timer_shell_string(f"Downscaling {project.deployment_name} in ", down_time)
+        cmd += f"kubectl scale -n {config.namespace} deployment {project.deployment_name} --replicas=1;"
+        Commander.execute_externally(cmd)
 
     def get_deployments(self):
         config = RuntimeVarModel.get()

@@ -52,7 +52,7 @@ class Commander:
         pltform = FileProcessor.get_platform()
         if pltform == "Linux":
             subprocess.Popen(
-                ["gnome-terminal", "--", command],
+                ["gnome-terminal", "--", os.path.join(os.getcwd(), "exec.sh"), command],
                 cwd=os.getcwd(),
             )
         else:

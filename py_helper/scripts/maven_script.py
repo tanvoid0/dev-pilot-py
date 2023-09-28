@@ -27,7 +27,7 @@ class MavenScript(OptionGroupModel):
     def clean_install_without_tests(self):
         try:
             active_project = ProjectModel.find_active_project()
-            Commander.execute_externally(f"cd {active_project.path} && mvn clean install -DskipTests=true")
+            Commander.execute_shell(f"cd {active_project.path} && mvn clean install -DskipTests=true")
         except ExceptionModel as ex:
             ex.print()
 

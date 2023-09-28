@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 
 from tabulate import tabulate
@@ -32,11 +33,11 @@ class ProjectType(Enum):
     def get_type(project_path):
         file_exists = FileProcessor.file_exists
 
-        if file_exists(project_path + "\\" + "pom.xml"):
+        if file_exists(os.path.join(project_path, "pom.xml")):
             return ProjectType.MAVEN
-        elif file_exists(project_path + "\\" + "package.json"):
+        elif file_exists(os.path.join(project_path, "package.json")):
             return ProjectType.NPM
-        elif file_exists(project_path + "\\" + "pubspec.yaml"):
+        elif file_exists(os.path.join(project_path, "pubspec.yaml")):
             return ProjectType.FLUTTER
         else:
             return ProjectType.UNKNOWN
