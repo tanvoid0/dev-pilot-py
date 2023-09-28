@@ -1,6 +1,13 @@
 from typing import Callable
 
-from py_helper.processor.print_processor import color_text, BRED_TEXT, BWHITE_TEXT, BLUE_TEXT, BPURPLE_TEXT
+from py_helper.processor.print_processor import (
+    color_text,
+    BRED_TEXT,
+    BWHITE_TEXT,
+    BLUE_TEXT,
+    BPURPLE_TEXT,
+    BACKGROUND_RED,
+)
 
 
 class OptionModel:
@@ -15,8 +22,8 @@ class OptionModel:
         self.command_example = command_example
         self.method = method
 
-    def option_text(self):
-        return f"{color_text(BRED_TEXT, self.choice)}. {color_text(BWHITE_TEXT, self.title)} {color_text(BLUE_TEXT, self.command_example)}\n"
+    def option_text(self, last_choice=""):
+        return f"{color_text(BACKGROUND_RED if last_choice == self.choice else BRED_TEXT, self.choice)}. {color_text(BWHITE_TEXT, self.title)} {color_text(BLUE_TEXT, self.command_example)}\n"
 
 
 class OptionGroupModel:
@@ -27,11 +34,11 @@ class OptionGroupModel:
         self.title = title
         self.commands = commands
 
-    def print_option(self):
+    def print_option(self, last_choice):
         data = color_text(BPURPLE_TEXT, self.title) + "\n"
 
         for value in self.commands:
-            data += value.option_text()
+            data += value.option_text(last_choice)
 
         data += "\n"
 

@@ -1,7 +1,5 @@
 from enum import Enum
-from typing import Callable
 
-import pandas as pd
 from tabulate import tabulate
 from sqlalchemy import String, inspect
 from sqlalchemy.orm import Mapped, mapped_column
@@ -9,11 +7,19 @@ from sqlalchemy.orm import Mapped, mapped_column
 from py_helper.models.base_model import BaseModel
 from py_helper.models.exception_model import ExceptionModel
 from py_helper.models.runtime_var_model import RuntimeVarModel
+
 # from py_helper.models.runtime_var_model import RuntimeVarModel
 from py_helper.processor.commander import Commander
 from py_helper.processor.db_processor import DBProcessor, get_session
 from py_helper.processor.file_processor import FileProcessor
-from py_helper.processor.print_processor import RED_TEXT, color_text, GREEN_TEXT, BRED_TEXT, WHITE_TEXT, BGREEN_TEXT
+from py_helper.processor.print_processor import (
+    RED_TEXT,
+    color_text,
+    GREEN_TEXT,
+    BRED_TEXT,
+    WHITE_TEXT,
+    BGREEN_TEXT,
+)
 
 
 class ProjectType(Enum):
@@ -89,17 +95,17 @@ class ProjectModel(BaseModel):
             )
         # Create a DataFrame from the list of dictionaries
         headers = [
-            color_text(header_color, 'id'),
-            color_text(header_color, 'path'),
-            color_text(header_color, 'name'),
-            color_text(header_color, 'type'),
-            color_text(header_color, 'docker_name'),
-            color_text(header_color, 'deployment_name'),
-            color_text(header_color, 'service_name'),
+            color_text(header_color, "id"),
+            color_text(header_color, "path"),
+            color_text(header_color, "name"),
+            color_text(header_color, "type"),
+            color_text(header_color, "docker_name"),
+            color_text(header_color, "deployment_name"),
+            color_text(header_color, "service_name"),
         ]
 
         # Print the DataFrame as a table
-        table = tabulate(data, headers=headers, tablefmt='grid')
+        table = tabulate(data, headers=headers, tablefmt="grid")
         print(table)
 
     @staticmethod
@@ -113,7 +119,8 @@ class ProjectModel(BaseModel):
                 ProjectModel.print_table(projects)
                 active_project = ProjectModel.find_active_project()
                 project_id = input(
-                    f"Enter Project id to select ({color_text(BRED_TEXT, 0)} to exit, default :{color_text(BRED_TEXT, active_project.id)}): ")
+                    f"Enter Project id to select ({color_text(BRED_TEXT, 0)} to exit, default :{color_text(BRED_TEXT, active_project.id)}): "
+                )
                 if project_id == active_project.id or project_id == "0":
                     break
                 ProjectModel.update_project_path_config(project_id)
@@ -146,7 +153,9 @@ class ProjectModel(BaseModel):
         config = RuntimeVarModel.get()
         project = ProjectModel.find_by_path(config.active_project_path)
         if project is None:
-            raise ExceptionModel(color_text(RED_TEXT, "Operation unsuccessful.") + " Add a project first")
+            raise ExceptionModel(
+                color_text(RED_TEXT, "Operation unsuccessful.") + " Add a project first"
+            )
         project.docker_pre_tag = config.docker_pre_tag
         project.docker_post_tag = config.docker_post_tag
         project.path = Commander.synthesize_path(project.path)
@@ -168,11 +177,17 @@ class ProjectModel(BaseModel):
         print(project_path)
         project_name = project_path.split("\\")[-1]
         project_name = Commander.persistent_input("Enter Project Name", project_name)
-        docker_name = Commander.persistent_input("Enter Docker Service Name", project_name)
+        docker_name = Commander.persistent_input(
+            "Enter Docker Service Name", project_name
+        )
         project_type = ProjectType.get_type(project_path)
         print(project_type.value)
-        new_project = ProjectModel(path=project_path, name=project_name, docker_name=docker_name,
-                                   type=project_type.value)
+        new_project = ProjectModel(
+            path=project_path,
+            name=project_name,
+            docker_name=docker_name,
+            type=project_type.value,
+        )
         project_id = db.insert(new_project)
         ProjectModel.update_project_path_config(project_id)
 
@@ -180,6 +195,9 @@ class ProjectModel(BaseModel):
     def update_project_path_config(project_id):
         print("Updating active project:")
         project = ProjectModel.find_by_id(project_id)
-        RuntimeVarModel.update(active_project_path=project.path, active_project_type=project.type)
+        RuntimeVarModel.update(
+            active_project_path=project.path, active_project_type=project.type
+        )
         print(
-            f"Project '{color_text(BRED_TEXT, project.name)}' with path {color_text(BGREEN_TEXT, project.path)} has been set to active")
+            f"Project '{color_text(BRED_TEXT, project.name)}' with path {color_text(BGREEN_TEXT, project.path)} has been set to active"
+        )

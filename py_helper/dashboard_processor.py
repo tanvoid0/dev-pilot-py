@@ -1,8 +1,14 @@
 from py_helper.models.exception_model import ExceptionModel
 from py_helper.models.project_model import ProjectModel, ProjectType
 from py_helper.processor.commander import Commander
-from py_helper.processor.print_processor import color_text, BRED_TEXT, BLUE_TEXT, BWHITE_TEXT, \
-    clear_console, press_enter_to_continue
+from py_helper.processor.print_processor import (
+    color_text,
+    BRED_TEXT,
+    BLUE_TEXT,
+    BWHITE_TEXT,
+    clear_console,
+    press_enter_to_continue,
+)
 from py_helper.scripts.docker_script import DockerScript
 from py_helper.scripts.git_script import GitScript
 from py_helper.scripts.internet_script import InternetScript
@@ -17,6 +23,7 @@ class DashboardProcessor:
     scripts = []
     output = ""
     commands = {}
+    last_choice = ""
 
     def reinitialize_scripts(self):
         self.scripts.clear()
@@ -46,7 +53,7 @@ class DashboardProcessor:
             pass
 
     def process_script(self, script):
-        self.output += script.print_option()
+        self.output += script.print_option(self.last_choice)
         self.copy_commands(script.commands)
 
     def run(self):
@@ -56,10 +63,11 @@ class DashboardProcessor:
                 self.process_script(script)
             self.print_options()
             self.pick_options()
+            clear_console()
 
     def pick_options(self):
-        data = Commander.persistent_input("Pick an option")
-        self.run_option(data)
+        self.last_choice = Commander.persistent_input("Pick an option")
+        self.run_option(self.last_choice)
         clear_console()
 
     def copy_commands(self, commands):
@@ -78,9 +86,11 @@ class DashboardProcessor:
         print("No option found")
 
     def print_options(self):
-        print("\n\nPreview Dashboard")
+        print("Dev Pilot")
 
         print(self.output)
 
     def print_option_item(self, option, feature, command):
-        print(f"{color_text(BRED_TEXT, option)}. {color_text(BWHITE_TEXT, feature)} {color_text(BLUE_TEXT, command)}")
+        print(
+            f"{color_text(BRED_TEXT, option)}. {color_text(BWHITE_TEXT, feature)} {color_text(BLUE_TEXT, command)}"
+        )

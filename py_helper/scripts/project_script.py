@@ -7,8 +7,14 @@ class ProjectScript(OptionGroupModel):
         super().__init__(
             "Project Utilities",
             [
-                OptionModel("ps", "Project Show", "Shows list of projects", ProjectModel.show),
-                OptionModel("pi", "Project Insert", "Creates a Project Item", ProjectModel.insert),
-                OptionModel("pg", "Project Select", "Find and Select project", ProjectModel.find_by_id)
-            ]
+                OptionModel(
+                    "ps", "Project Show", "Select Project from List", ProjectModel.show
+                ),
+                OptionModel(
+                    "pi",
+                    "Project Insert",
+                    "Creates a Project Item",
+                    ProjectModel.insert,
+                ),
+            ],
         )
