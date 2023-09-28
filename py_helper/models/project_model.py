@@ -176,6 +176,7 @@ class ProjectModel(BaseModel):
             print(f"Invalid path. Does not exist: {project_path}")
         print(project_path)
         project_name = project_path.split("\\")[-1]
+        project_name = project_name.split("/")[-1]
         project_name = Commander.persistent_input("Enter Project Name", project_name)
         docker_name = Commander.persistent_input(
             "Enter Docker Service Name", project_name

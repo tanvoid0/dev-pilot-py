@@ -23,7 +23,8 @@ class Commander:
 
     @staticmethod
     def execute_externally(command_to_run, python=False):
-        subprocess.run(["python", "exec.py"])
+        Commander.execute_shell(command_to_run)
+        # subprocess.run(["python", "exec.py"])
         # if python:
         #     command_to_run = f"python exec.py -k {command_to_run}"
         # else:
@@ -43,8 +44,19 @@ class Commander:
 
         # output = subprocess.Popen(['x-terminal-emulator', '-e', 'bash', 'exec.sh', command_to_run], shell=True,
         #                           stdout=subprocess.PIPE, text=True)
-        print("Finished")
+        # print("Finished")
         # print(output.stdout)
+
+    @staticmethod
+    def execute_shell(command):
+        pltform = FileProcessor.get_platform()
+        if pltform == "Linux":
+            subprocess.Popen(
+                ["gnome-terminal", "--", command],
+                cwd=os.getcwd(),
+            )
+        else:
+            raise "OS Not supported"
 
     @staticmethod
     def execute_python(args=None, execute=""):
@@ -59,9 +71,13 @@ class Commander:
             )
         elif pltfrm == "Linux":
             subprocess.Popen(
-                ["xterm", "-e", "python3", "pilot.py", f"exec={execute}"] + args,
+                ["gnome-terminal", "--", "python3", "pilot.py", f"exec='{execute}'"] + args,
                 cwd=os.getcwd(),
             )
+            # subprocess.Popen(
+            #     ["gnome-terminal", "-e", "python3", "pilot.py", f"exec={execute}"] + args,
+            #     cwd=os.getcwd(),
+            # )
             # subprocess.Popen(["python", "pilot.py"])
         else:
             raise "OS Not supported"
@@ -79,10 +95,10 @@ class Commander:
     @staticmethod
     def persistent_input(query, optional_data=None):
         query += (
-            " (" + (color_text(GREEN_TEXT, optional_data) + ")")
-            if optional_data is not None
-            else ""
-        ) + ": "
+                     " (" + (color_text(GREEN_TEXT, optional_data) + ")")
+                     if optional_data is not None
+                     else ""
+                 ) + ": "
         while True:
             data = input(query)
             # query + ("(" + color_text(GREEN_TEXT, optional_data) + ")") if optional_data is not None else "" + ": ")

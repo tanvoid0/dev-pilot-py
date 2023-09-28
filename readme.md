@@ -1,6 +1,6 @@
 # Required Libraries
 ## Python
-pip install -r requirements.txt
+install python libraries - `pip install -r requirements.txt`
 
 ## Linux
-xterm - sudo apt-get install xterm
+gnome-terminal - `sudo apt-get install gnome-terminal`
