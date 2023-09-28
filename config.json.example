@@ -1,0 +1,19 @@
+{
+  "vars": {
+    "docker-pre-tag": "",
+    "namespace": "",
+    "startup-time": 0
+  },
+  "db": {
+    "reset": false
+  },
+  "kubernetes": {
+    "deployments": {
+      "x": true
+    },
+    "scale": {
+      "up": 30,
+      "down": 5
+    }
+  }
+}
