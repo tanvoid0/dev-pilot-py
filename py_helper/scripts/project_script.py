@@ -1,5 +1,6 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.models.project_model import ProjectModel
+from py_helper.processor.commander import Commander
 
 
 class ProjectScript(OptionGroupModel):
@@ -16,5 +17,10 @@ class ProjectScript(OptionGroupModel):
                     "Creates a Project Item",
                     ProjectModel.insert,
                 ),
+                OptionModel("0", "Open Autopilot", "Beta", lambda: self.autopilot(), ),
             ],
         )
+
+    @staticmethod
+    def autopilot():
+        Commander.execute_python(args=["pilot=PROJECT,DOCKER,KUBERNETES"])

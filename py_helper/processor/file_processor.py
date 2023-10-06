@@ -5,7 +5,7 @@ import subprocess
 
 import yaml
 
-from py_helper.models.exception_model import ExceptionModel
+from py_helper.models.exception.exception_model import ExceptionModel
 
 
 class FileProcessor:
@@ -81,7 +81,3 @@ class FileProcessor:
     @staticmethod
     def get_platform():
         return platform.system()
-
-    @staticmethod
-    def check_platform(expected_platform):
-        return expected_platform == FileProcessor.get_platform()

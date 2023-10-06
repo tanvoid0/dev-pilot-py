@@ -1,5 +1,6 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
+from py_helper.scripts.string_generator.gcloud_command_string_generator import GCloudCommandStringGenerator
 
 
 class GcloudScript(OptionGroupModel):
@@ -12,8 +13,10 @@ class GcloudScript(OptionGroupModel):
             ],
         ),
 
-    def login(self):
-        Commander.execute_externally("gcloud auth login")
+    @staticmethod
+    def login():
+        Commander.execute_shell(GCloudCommandStringGenerator.login())
 
-    def init(self):
-        Commander.execute_externally("gcloud init")
+    @staticmethod
+    def init():
+        Commander.execute_shell(GCloudCommandStringGenerator.init_gcloud())

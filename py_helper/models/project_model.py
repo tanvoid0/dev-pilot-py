@@ -1,14 +1,13 @@
 import os
 from enum import Enum
 
-from tabulate import tabulate
-from sqlalchemy import String, inspect
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
+from tabulate import tabulate
 
 from py_helper.models.base_model import BaseModel
-from py_helper.models.exception_model import ExceptionModel
+from py_helper.models.exception.exception_model import ExceptionModel
 from py_helper.models.runtime_var_model import RuntimeVarModel
-
 # from py_helper.models.runtime_var_model import RuntimeVarModel
 from py_helper.processor.commander import Commander
 from py_helper.processor.db_processor import DBProcessor, get_session
@@ -68,7 +67,6 @@ class ProjectModel(BaseModel):
     id: Mapped[int] = mapped_column(primary_key=True)
     path: Mapped[str] = mapped_column(String(500), unique=True)
     name: Mapped[str] = mapped_column(String(255))
-    docker_name: Mapped[str] = mapped_column(String(255), nullable=True)
     type: Mapped[str] = mapped_column(String(255), default=ProjectType.UNKNOWN.value)
     deployment_name: Mapped[str] = mapped_column(String(255), nullable=True)
     service_name: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -89,7 +87,6 @@ class ProjectModel(BaseModel):
                     color_text(data_color, project.path),
                     color_text(data_color, project.name),
                     color_text(data_color, project.type),
-                    color_text(data_color, project.docker_name),
                     color_text(data_color, project.deployment_name),
                     color_text(data_color, project.service_name),
                 )
@@ -100,7 +97,6 @@ class ProjectModel(BaseModel):
             color_text(header_color, "path"),
             color_text(header_color, "name"),
             color_text(header_color, "type"),
-            color_text(header_color, "docker_name"),
             color_text(header_color, "deployment_name"),
             color_text(header_color, "service_name"),
         ]
@@ -160,13 +156,14 @@ class ProjectModel(BaseModel):
         project.docker_pre_tag = config.docker_pre_tag
         project.docker_post_tag = config.docker_post_tag
         project.path = Commander.synthesize_path(project.path)
+        project.image_name = f"{project.docker_pre_tag}/{project.name}:{project.docker_post_tag}"
         return project
 
     @staticmethod
     def insert():
         db = DBProcessor()
         while True:
-            project_path = Commander.persistent_input("Enter Project Path")
+            project_path: str = Commander.persistent_input("Enter Project Path")
             if FileProcessor.file_exists(project_path):
                 project = ProjectModel.find_by_path(project_path)
                 if project is None:
@@ -176,18 +173,21 @@ class ProjectModel(BaseModel):
                     continue
             print(f"Invalid path. Does not exist: {project_path}")
         print(project_path)
-        project_name = project_path.split("\\")[-1]
-        project_name = project_name.split("/")[-1]
+        project_name = ProjectModel.get_project_name_from_path(project_path)
         project_name = Commander.persistent_input("Enter Project Name", project_name)
-        docker_name = Commander.persistent_input(
-            "Enter Docker Service Name", project_name
+        service_name = Commander.persistent_input(
+            f"Enter kubernetes service Name", project_name + "-service"
+        )
+        deployment_name = Commander.persistent_input(
+            f"Enter kubernetes deployment Name", project_name + "-deployment"
         )
         project_type = ProjectType.get_type(project_path)
         print(project_type.value)
         new_project = ProjectModel(
             path=project_path,
             name=project_name,
-            docker_name=docker_name,
+            deployment_name=deployment_name,
+            service_name=service_name,
             type=project_type.value,
         )
         project_id = db.insert(new_project)
@@ -203,3 +203,7 @@ class ProjectModel(BaseModel):
         print(
             f"Project '{color_text(BRED_TEXT, project.name)}' with path {color_text(BGREEN_TEXT, project.path)} has been set to active"
         )
+
+    @staticmethod
+    def get_project_name_from_path(project_path: str):
+        return project_path.split("\\")[-1].split("/")[-1]

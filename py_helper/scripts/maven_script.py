@@ -1,7 +1,7 @@
-from py_helper.models.exception_model import ExceptionModel
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.models.project_model import ProjectModel
 from py_helper.processor.commander import Commander
+from py_helper.scripts.string_generator.maven_command_string_generator import MavenCommandStringGenerator
 
 
 class MavenScript(OptionGroupModel):
@@ -16,24 +16,25 @@ class MavenScript(OptionGroupModel):
             ]
         )
 
-    def clean_install(self):
-        try:
-            active_project = ProjectModel.find_active_project()
-            Commander.execute_externally(f"cd {active_project.path} && mvn clean install")
+    @staticmethod
+    def auto_pilot():
+        path = ProjectModel.find_active_project().path
+        return [
+            MavenCommandStringGenerator.clean_install(path, without_tests=True),
+        ]
 
-        except ExceptionModel as ex:
-            ex.print()
+    @staticmethod
+    def clean_install():
+        active_project = ProjectModel.find_active_project()
+        Commander.execute_shell(MavenCommandStringGenerator.clean_install(active_project.path))
 
-    def clean_install_without_tests(self):
-        try:
-            active_project = ProjectModel.find_active_project()
-            Commander.execute_shell(f"cd {active_project.path} && mvn clean install -DskipTests=true")
-        except ExceptionModel as ex:
-            ex.print()
+    @staticmethod
+    def clean_install_without_tests(external=True):
+        active_project = ProjectModel.find_active_project()
+        Commander.execute_shell(MavenCommandStringGenerator.clean_install(active_project.path, without_tests=True),
+                                external=external)
 
-    def test(self):
-        try:
-            active_project = ProjectModel.find_active_project()
-            Commander.execute_externally(f"cd {active_project.path} && mvn run test")
-        except ExceptionModel as ex:
-            ex.print()
+    @staticmethod
+    def test():
+        active_project = ProjectModel.find_active_project()
+        Commander.execute_shell(MavenCommandStringGenerator.test(active_project.path))

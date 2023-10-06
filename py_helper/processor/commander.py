@@ -4,8 +4,9 @@ import subprocess
 import pandas as pd
 from tabulate import tabulate
 
-from py_helper.processor.file_processor import FileProcessor
+from py_helper.processor.os_commander import OSCommander
 from py_helper.processor.print_processor import color_text, GREEN_TEXT
+from py_helper.utility.command_string_generator import CommandStringGenerator
 
 
 def empty_string(data):
@@ -14,15 +15,20 @@ def empty_string(data):
 
 class Commander:
     @staticmethod
-    def execute(commands, show=False):
-        process = subprocess.run(commands, capture_output=True, shell=True)
-        output = process.stdout.decode("utf-8")
-        if show:
-            print(output)
-        return output
+    def execute(commands, show=False, sync=False):
+        if sync:
+            subprocess.run(commands, shell=True)
+
+        else:
+            process = subprocess.run(commands, capture_output=True, shell=True)
+            output = process.stdout.decode("utf-8")
+            if show:
+                print(output)
+            return output
 
     @staticmethod
     def execute_externally(command_to_run, python=False):
+        """This is deprecated"""
         Commander.execute_shell(command_to_run)
         # subprocess.run(["python", "exec.py"])
         # if python:
@@ -48,39 +54,42 @@ class Commander:
         # print(output.stdout)
 
     @staticmethod
-    def execute_shell(command):
-        pltform = FileProcessor.get_platform()
-        if pltform == "Linux":
-            subprocess.Popen(
-                ["gnome-terminal", "--", os.path.join(os.getcwd(), "exec.sh"), command],
-                cwd=os.getcwd(),
-            )
+    def execute_shell(command, external=True):
+        if not external:
+            Commander.execute(command)
         else:
-            raise "OS Not supported"
+            exec_file = os.path.join(os.getcwd(), "exec.sh")
+            OSCommander.run(
+                linux=lambda: subprocess.Popen(
+                    ["gnome-terminal", "--", exec_file, command],
+                    cwd=os.getcwd(),
+                ),
+                windows=lambda: subprocess.Popen(
+                    ["start", "cmd", "/k", exec_file, command]
+                )
+            )
 
     @staticmethod
-    def execute_python(args=None, execute=""):
+    def execute_python(execute="", args=None, sync=False):
         print(os.getcwd())
-        pltfrm = FileProcessor.get_platform()
         if args is None:
             args = []
-        if pltfrm == "Windows":
-            subprocess.Popen(
-                ["start", "cmd", "/k", "python", "pilot.py", f"exec={execute}"] + args,
-                shell=True,
+            if sync:
+                args.append("sync")
+        OSCommander.run(
+            windows=lambda: (
+                subprocess.Popen(
+                    ["start", "cmd", "/k", "python", "pilot.py", f"exec='{execute}'"] + args,
+                    shell=True,
+                )
+            ),
+            linux=lambda: (
+                subprocess.Popen(
+                    ["gnome-terminal", "--", "python3", "pilot.py", f"exec='{execute}'"] + args,
+                    cwd=os.getcwd(),
+                )
             )
-        elif pltfrm == "Linux":
-            subprocess.Popen(
-                ["gnome-terminal", "--", "python3", "pilot.py", f"exec='{execute}'"] + args,
-                cwd=os.getcwd(),
-            )
-            # subprocess.Popen(
-            #     ["gnome-terminal", "-e", "python3", "pilot.py", f"exec={execute}"] + args,
-            #     cwd=os.getcwd(),
-            # )
-            # subprocess.Popen(["python", "pilot.py"])
-        else:
-            raise "OS Not supported"
+        )
 
     @staticmethod
     def print(commands):
@@ -95,7 +104,7 @@ class Commander:
     @staticmethod
     def persistent_input(query, optional_data=None):
         query += (
-                     " (" + (color_text(GREEN_TEXT, optional_data) + ")")
+                     " (default: " + (color_text(GREEN_TEXT, optional_data) + ")")
                      if optional_data is not None
                      else ""
                  ) + ": "
@@ -112,3 +121,7 @@ class Commander:
     @staticmethod
     def synthesize_path(path: str):
         return path.replace("\\", "/")
+
+    @staticmethod
+    def open_with_notepad(file_path):
+        Commander.execute_shell(CommandStringGenerator.launch_notepad(file_path))

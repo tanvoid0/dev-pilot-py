@@ -1,5 +1,6 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
+from py_helper.utility.command_string_generator import CommandStringGenerator
 
 
 class InternetScript(OptionGroupModel):
@@ -16,19 +17,27 @@ class InternetScript(OptionGroupModel):
                     "e.g., npx kill-port 8080",
                     InternetScript.kill_port,
                 ),
-                OptionModel("0", "Open Autopilot", "Beta", self.autopilot),
+                OptionModel(
+                    "i3",
+                    "open text",
+                    "",
+                    self.launch_notepad,
+                ),
             ],
         )
 
     @staticmethod
     def ping():
-        data = Commander.persistent_input("Enter ip address or host to ping")
-        Commander.execute_python(execute=f"ping {data}")
+        Commander.execute(CommandStringGenerator.ping("google.com"), sync=True)
+        # Commander.execute_python(CommandStringGenerator.ping("google.com"), sync=True)
+        # Commander.execute('echo Hello world')
 
     @staticmethod
     def kill_port():
         data = Commander.persistent_input("Enter port to kill")
-        Commander.execute_externally(f"npx kill-port {data}")
+        Commander.execute_shell(f"npx kill-port {data}")
 
-    def autopilot(self):
-        Commander.execute_python(args=["test script", "x=y", "z", "a=bc"])
+    @staticmethod
+    def launch_notepad():
+        Commander.execute_shell(
+            "xdg-open /home/tan/Documents/config/dev-pilot-py/kube-configs/payment-service/payment-service-config-2023-09-29-19-31-48.yaml")

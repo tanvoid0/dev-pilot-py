@@ -1,7 +1,7 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.models.project_model import ProjectModel
-from py_helper.models.runtime_var_model import RuntimeVarModel
 from py_helper.processor.commander import Commander
+from py_helper.scripts.string_generator.npm_command_string_generator import NpmCommandStringGenerator
 
 
 class NpmScript(OptionGroupModel):
@@ -18,27 +18,32 @@ class NpmScript(OptionGroupModel):
             ]
         )
 
-    def install(self):
+    @staticmethod
+    def install():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm install")
-        # Commander.execute_externally("npm install")
+        Commander.execute_shell(NpmCommandStringGenerator.install(active_project.path))
 
-    def clean_install(self):
+    @staticmethod
+    def clean_install():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm ci")
+        Commander.execute_shell(NpmCommandStringGenerator.clean_install(active_project.path))
 
-    def start(self):
+    @staticmethod
+    def start():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm run start")
+        Commander.execute_shell(NpmCommandStringGenerator.start(active_project.start))
 
-    def test(self):
+    @staticmethod
+    def test():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm run test")
+        Commander.execute_shell(NpmCommandStringGenerator.test(active_project.path))
 
-    def lint(self):
+    @staticmethod
+    def lint():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm run lint")
+        Commander.execute_shell(NpmCommandStringGenerator.lint(active_project.path))
 
-    def build(self):
+    @staticmethod
+    def build():
         active_project = ProjectModel.find_active_project()
-        Commander.execute_externally(f"cd {active_project.path} && npm run build")
+        Commander.execute_shell(NpmCommandStringGenerator.build(active_project.path))

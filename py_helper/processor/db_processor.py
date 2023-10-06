@@ -5,7 +5,7 @@ from py_helper.processor.file_processor import FileProcessor
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from py_helper.processor.print_processor import RED_TEXT, GREEN_TEXT, YELLOW_TEXT, color_text, get_config_file
+from py_helper.processor.print_processor import RED_TEXT, GREEN_TEXT, YELLOW_TEXT, color_text
 
 db_file = os.path.join(FileProcessor.current_path(), "db.sqlite")
 db_engine = create_engine("sqlite:///{}".format(db_file), echo=False)
@@ -19,7 +19,9 @@ class DBProcessor:
 
     def init(self, base_model):
         session = get_session()
-        config_data = get_config_file()
+        config_data = FileProcessor.read_json(
+            os.path.join(FileProcessor.current_path(), "config.json")
+        )
         print(
             f"Database Reset mode: {color_text(RED_TEXT, 'On') if config_data['db']['reset'] else color_text(GREEN_TEXT, 'Off')}")
         if config_data['db']['reset']:

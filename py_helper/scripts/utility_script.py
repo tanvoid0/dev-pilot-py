@@ -17,14 +17,14 @@ class UtilityScript(OptionGroupModel):
     @staticmethod
     def decode():
         data = Commander.persistent_input("Enter Base64 String to decode")
-        Commander.execute_externally(f"echo '{data}' | base64 --decode")
+        Commander.execute_shell(f"echo '{data}' | base64 --decode")
 
     @staticmethod
     def encode():
         data = Commander.persistent_input("Enter String to encode to Base64")
-        Commander.execute_externally(f"echo '{data}' | base64")
+        Commander.execute_shell(f"echo '{data}' | base64")
 
     @staticmethod
     def custom_command():
         data = Commander.persistent_input("Enter your custom command")
-        Commander.execute_externally(f"{data}")
+        Commander.execute_shell(f"{data}")

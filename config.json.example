@@ -1,15 +1,20 @@
 {
   "vars": {
     "docker-pre-tag": "",
+    "docker-pre-tag-latest": "",
     "namespace": "",
     "startup-time": 0
   },
   "db": {
     "reset": false
   },
+  "vpn": {
+    "username": "",
+    "password": "",
+    "config": ""
+  },
   "kubernetes": {
     "deployments": {
-      "x": true
     },
     "scale": {
       "up": 30,

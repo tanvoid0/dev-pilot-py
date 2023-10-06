@@ -61,3 +61,8 @@ class RuntimeVarModel(BaseModel):
         model.active_project_type = active_project_type
         session.commit()
         return model
+
+    @staticmethod
+    def get_kubernetes_scale_config():
+        config_file = RuntimeVarModel.get_config_file()
+        return config_file['kubernetes']['scale']

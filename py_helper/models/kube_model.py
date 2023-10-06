@@ -2,8 +2,47 @@ import re
 
 from tabulate import tabulate
 
-from py_helper.processor.print_processor import GREEN_TEXT, color_text, BGREEN_TEXT, BYELLOW_TEXT
+from py_helper.processor.commander import Commander
+from py_helper.processor.print_processor import color_text, BRED_TEXT, BGREEN_TEXT, BYELLOW_TEXT, clear_console
 from py_helper.processor.util_processor import UtilProcessor
+
+
+class PodModel:
+    id: int
+    name: str
+    ready: str
+    status: str
+    restarts: str
+    age: str
+    deployment_name: str
+
+    def __init__(self, _id, name="", ready="", status=None, restarts=None, age=None, stateful_set=False,
+                 selected=True):
+        self.id = _id
+        self.name = name
+        self.ready = ready
+        self.stateful_set = stateful_set
+        self.status = status
+        self.restarts = restarts
+        self.selected = selected
+        self.age = age
+        # if age is not None:
+        #     self.age = UtilProcessor.round_days(int(age))
+
+    @staticmethod
+    def pod_from_kubectl(namespace: str, deployment_name):
+        output = Commander.execute(f"kubectl get pods -n {namespace} | grep \"{deployment_name}.*\"")
+        # print(output)
+
+        return []
+
+    @staticmethod
+    def find_pod_by_deployment_name(pods: [], deployment_name: str):
+        filtered_pods = []
+        for item in pods:
+            if item.name.startswith(deployment_name):
+                filtered_pods.append(item)
+        return filtered_pods
 
 
 class DeploymentModel:
@@ -15,10 +54,11 @@ class DeploymentModel:
     age: str
     stateful_set: bool
     selected: bool
+    pods: []
 
-    def __init__(self, id, name="", ready="", up_to_date=None, available=None, age=None, stateful_set=False,
-                 selected=True):
-        self.id = id
+    def __init__(self, _id, name="", ready="", up_to_date=None, available=None, age=None, stateful_set=False,
+                 selected=True, pods=[]):
+        self.id = _id
         self.name = name
         self.ready = ready
         self.stateful_set = stateful_set
@@ -27,17 +67,21 @@ class DeploymentModel:
         self.selected = selected
         if age is not None:
             self.age = UtilProcessor.round_days(int(age))
+        self.pods = pods
 
     def __repr__(self):
         return f"Deployment(id={self.id}, name={self.name}, ready={self.ready}, " \
                f"up_to_date={self.up_to_date}, available={self.available}, " \
                f"age={self.age}, stateful_set={self.stateful_set})"
 
-    def ready_highlighter(self, string) -> str:
+    @staticmethod
+    def ready_highlighter(string, value=None) -> str:
         if string == "0/1":
-            return color_text(BYELLOW_TEXT, string)
+            return color_text(BYELLOW_TEXT, f"Scaling - {string}" if value is None else value)
         elif string == "1/1":
-            return color_text(BGREEN_TEXT, string)
+            return color_text(BGREEN_TEXT, f"Ready   - {string}" if value is None else value)
+        elif string == "0/0":
+            return color_text(BRED_TEXT, "Inactive" if value is None else value)
         else:
             return string
 
@@ -47,16 +91,19 @@ class DeploymentModel:
         deployments_tuples = re.findall(pattern, string)
         data = []
         for i in range(len(deployments_tuples)):
+            # pods = PodModel.pod_from_kubectl(namespace, deployments_tuples[i][0])
             data.append(
                 DeploymentModel(
-                    id=i + 1,
+                    _id=i + 1,
                     name=deployments_tuples[i][0],
                     ready=deployments_tuples[i][1],
                     up_to_date=deployments_tuples[i][2],
                     available=deployments_tuples[i][3],
-                    age=deployments_tuples[i][4]
+                    age=deployments_tuples[i][4],
+                    # pods=PodModel.find_pod_by_deployment_name(pods, deployments_tuples[i][0])
                 )
             )
+
         if show:
             DeploymentModel.print_list(data, namespace)
         return data
@@ -68,7 +115,7 @@ class DeploymentModel:
         for i in range(len(deployments_tuples)):
             data.append(
                 DeploymentModel(
-                    id=i + 1,
+                    _id=i + 1,
                     name=deployments_tuples[i][0],
                     ready=deployments_tuples[i][1],
                     age=deployments_tuples[i][2],
@@ -81,10 +128,15 @@ class DeploymentModel:
 
     @staticmethod
     def print_list(data, namespace):
+        clear_console()
         deployment_list = []
         for deployment in data:
             deployment_list.append(
-                [deployment.id, deployment.name, deployment.ready, deployment.up_to_date, deployment.available,
+                [deployment.id,
+                 DeploymentModel.ready_highlighter(deployment.ready, deployment.name),
+                 DeploymentModel.ready_highlighter(deployment.ready),
+                 deployment.up_to_date,
+                 deployment.available,
                  deployment.age,
                  deployment.stateful_set,
                  deployment.selected

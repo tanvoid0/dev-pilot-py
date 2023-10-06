@@ -4,8 +4,6 @@ import threading
 import time
 import sys
 
-from py_helper.processor.file_processor import FileProcessor
-
 RESET_TEXT = "\033[0m"  # Reset text color to default
 BLACK_TEXT = "\033[0;30m"
 BBLACK_TEXT = "\033[1;30m"
@@ -114,10 +112,5 @@ def clear_console():
 
 
 def press_enter_to_continue():
-    input("Press enter to continue...")
+    input(f"\nPress {color_text(RED_TEXT, 'Enter(⏎)')} to continue...")
 
-
-def get_config_file():
-    return FileProcessor.read_json(
-        os.path.join(FileProcessor.current_path(), "config.json")
-    )
