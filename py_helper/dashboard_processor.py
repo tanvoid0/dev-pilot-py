@@ -16,7 +16,7 @@ from py_helper.scripts.kubernetes_script import KubernetesScript
 from py_helper.scripts.maven_script import MavenScript
 from py_helper.scripts.npm_script import NpmScript
 from py_helper.scripts.project_script import ProjectScript
-from py_helper.scripts.secret_scripts.secret_scripts import secret_scripts
+from py_helper.scripts.secret_scripts import secret_scripts
 from py_helper.scripts.utility_script import UtilityScript
 
 
