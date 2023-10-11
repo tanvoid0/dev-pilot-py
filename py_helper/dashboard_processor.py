@@ -10,6 +10,7 @@ from py_helper.processor.print_processor import (
     clear_console,
     press_enter_to_continue, BCYAN_TEXT, )
 from py_helper.scripts.docker_script import DockerScript
+from py_helper.scripts.flutter_script import FlutterScript
 from py_helper.scripts.git_script import GitScript
 from py_helper.scripts.internet_script import InternetScript
 from py_helper.scripts.kubernetes_script import KubernetesScript
@@ -51,6 +52,7 @@ class DashboardProcessor:
                 project_type=active_project.type,
                 maven=lambda: self.scripts.append(MavenScript()),
                 npm=lambda: self.scripts.append(NpmScript()),
+                flutter=lambda: self.scripts.append(FlutterScript())
             )
         except ExceptionModel as ex:
             pass

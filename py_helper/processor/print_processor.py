@@ -112,5 +112,5 @@ def clear_console():
 
 
 def press_enter_to_continue():
-    input(f"\nPress {color_text(RED_TEXT, 'Enter(⏎)')} to continue...")
+    input(f"\nPress {color_text(RED_TEXT, 'Enter(*)')} to continue...")
 

@@ -63,6 +63,14 @@ class FileProcessor:
             raise ExceptionModel(f"Does not have enough permission to remove the file {file_name}.\nLog: {ex}")
 
     @staticmethod
+    def copy_file(source_file, destination_file):
+        try:
+            subprocess.run(["copy", source_file, destination_file], shell=True)
+        except Exception as ex:
+            print("Error copying file")
+            raise ex
+
+    @staticmethod
     def write_yaml(file_name, data):
         with open(file_name, 'w') as file:
             yaml.dump(data, file)

@@ -28,9 +28,8 @@ class InternetScript(OptionGroupModel):
 
     @staticmethod
     def ping():
-        Commander.execute(CommandStringGenerator.ping("google.com"), sync=True)
-        # Commander.execute_python(CommandStringGenerator.ping("google.com"), sync=True)
-        # Commander.execute('echo Hello world')
+        data = Commander.persistent_input("Enter domain/ip")
+        Commander.execute_shell(CommandStringGenerator.ping(data))
 
     @staticmethod
     def kill_port():

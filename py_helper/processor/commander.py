@@ -65,7 +65,8 @@ class Commander:
                     cwd=os.getcwd(),
                 ),
                 windows=lambda: subprocess.Popen(
-                    ["start", "cmd", "/k", exec_file, command]
+                    ["cmd.exe", "/c", "start", exec_file, command],
+                    cwd=os.getcwd()
                 )
             )
 

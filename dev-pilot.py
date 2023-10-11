@@ -8,10 +8,7 @@ from py_helper.processor.print_processor import color_text, BRED_TEXT
 if __name__ == '__main__':
     print("Operating System: {}".format(color_text(BRED_TEXT, FileProcessor.get_platform())))
     db = DBProcessor()
-    if db.init(BaseModel):
-        RuntimeVarModel.init()
-
+    RuntimeVarModel.first_setup()
     dashboard = DashboardProcessor()
     dashboard.run()
 
-# cmd.print(["echo", "Hello world"])
