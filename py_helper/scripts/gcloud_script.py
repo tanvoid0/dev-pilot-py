@@ -1,6 +1,6 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
-from py_helper.scripts.string_generator.gcloud_command_string_generator import GCloudCommandStringGenerator
+from py_helper.service.string_generator.gcloud_command_string_generator import GCloudCommandStringGenerator
 
 
 class GcloudScript(OptionGroupModel):

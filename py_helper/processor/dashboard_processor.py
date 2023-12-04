@@ -1,6 +1,5 @@
-from py_helper.models.exception.exception_model import ExceptionModel
-from py_helper.models.project_model import ProjectModel, ProjectType
-from py_helper.models.runtime_var_model import RuntimeVarModel
+from py_helper.models.exception.app_exception import AppException
+from py_helper.models.project_model import ProjectType
 from py_helper.processor.commander import Commander
 from py_helper.processor.print_processor import (
     color_text,
@@ -19,6 +18,8 @@ from py_helper.scripts.npm_script import NpmScript
 from py_helper.scripts.project_script import ProjectScript
 from py_helper.scripts.secret_scripts import secret_scripts
 from py_helper.scripts.utility_script import UtilityScript
+from py_helper.service.config_service import ConfigService
+from py_helper.service.project_service import ProjectService
 
 
 class DashboardProcessor:
@@ -26,6 +27,8 @@ class DashboardProcessor:
     output = ""
     commands = {}
     last_choice = ""
+    config_service = ConfigService()
+    project_service = ProjectService()
 
     def reinitialize_scripts(self):
         self.scripts.clear()
@@ -44,17 +47,17 @@ class DashboardProcessor:
 
     def add_conditional_scripts(self):
         try:
-            active_project = ProjectModel.find_active_project()
+            active_project = self.project_service.find_active_project()
             self.scripts.append(DockerScript())
             self.scripts.append(GitScript())
 
             ProjectType.exec_func(
-                project_type=active_project.type,
+                project_type=None if active_project is None else active_project.type,
                 maven=lambda: self.scripts.append(MavenScript()),
                 npm=lambda: self.scripts.append(NpmScript()),
                 flutter=lambda: self.scripts.append(FlutterScript())
             )
-        except ExceptionModel as ex:
+        except AppException as ex:
             pass
 
     def process_script(self, script):
@@ -67,16 +70,22 @@ class DashboardProcessor:
             for script in self.scripts:
                 self.process_script(script)
             self.print_options()
+            self.print_configs()
             self.pick_options()
             clear_console()
 
     def pick_options(self):
+        Commander.on_key_press()
         self.last_choice = Commander.persistent_input("Pick an option")
+        Commander.on_key_press()
         self.run_option(self.last_choice)
         clear_console()
 
     def copy_commands(self, commands):
         for value in commands:
+            if value.choice in self.commands:
+                raise AppException(
+                    f'Duplicate keys found. Remove Duplicate option keys \'{value.choice}\' from scripts.')
             self.commands[value.choice] = value
 
     def run_option(self, option):
@@ -88,11 +97,13 @@ class DashboardProcessor:
                     value.method()
                     return
             print("No option found")
-        except ExceptionModel as ex:
+        except AppException as ex:
             ex.print()
+            raise ex
         except Exception as ex:
             print("Some exception occurred")
             print(ex)
+            raise ex
         finally:
             press_enter_to_continue()
 
@@ -102,14 +113,17 @@ class DashboardProcessor:
         print(self.output)
 
     def print_configs(self):
-        config = RuntimeVarModel.get()
+        config = self.config_service.get_config()
         color = BCYAN_TEXT
-
-        print(f"{color_text(color, 'Docker Pre Tag      : ')}{config.docker_pre_tag}")
         print(f"{color_text(color, 'Namespace           : ')}{config.namespace}")
-        print(f"{color_text(color, 'Active Project Path : ')}{config.active_project_path}")
-        print(f"{color_text(color, 'Active Project Type : ')}{config.active_project_type}")
-        print()
+        print(f"{color_text(color, 'Docker Pre Tag      : ')}{config.docker_pre_tag}")
+        if config.project is not None:
+            # active_project = self.project_service.find_active_project()
+            print(
+                f"{color_text(color, 'Deployment Image    : ')}{config.get_docker_image_for_active_project()}")
+            print(f"{color_text(color, 'Active Project Name : ')}{config.project.name}")
+            print(f"{color_text(color, 'Active Project Path : ')}{config.project.path}")
+            print(f"{color_text(color, 'Active Project Type : ')}{config.project.type}")
 
     def print_option_item(self, option, feature, command):
         print(

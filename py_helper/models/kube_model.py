@@ -1,10 +1,94 @@
 import re
+from typing import Dict
 
+from kubernetes.client import V1DeploymentCondition, V1Deployment, V1DeploymentStatus
+from sqlalchemy import String, Column, Integer, Boolean
+from sqlalchemy.orm import relationship, Mapped
 from tabulate import tabulate
 
+from py_helper.models.base_model import BaseModel
 from py_helper.processor.commander import Commander
+from py_helper.processor.db_processor import DBProcessor
 from py_helper.processor.print_processor import color_text, BRED_TEXT, BGREEN_TEXT, BYELLOW_TEXT, clear_console
 from py_helper.processor.util_processor import UtilProcessor
+
+
+class KubernetesDeploymentReplicaSet:
+    replicas: int = None
+    ready_replicas: int = None
+    available_replicas: int = None
+    unavailable_replicas: int = None
+    updated_replicase: int = None
+    conditions: [V1DeploymentCondition] = []
+
+    def __init__(self, status: V1DeploymentStatus):
+        self.replicas = status.replicas
+        self.ready_replicas = status.ready_replicas
+        self.available_replicas = status.available_replicas
+        self.unavailable_replicas = status.unavailable_replicas
+        self.updated_replicase = status.updated_replicas
+        self.conditions = status.conditions
+
+
+class KubernetesDeploymentModel(BaseModel):
+    __tablename__ = "deployments"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    service_name = Column(String(255), nullable=True)
+    stateful_set: Mapped[bool] = Column(Boolean, default=False)
+    order_seq: Mapped[int] = Column(Integer, default=0)
+    selected: Mapped[bool] = Column(Boolean, default=True)
+    project = relationship('ProjectModel', back_populates='deployment', uselist=False)
+
+    ## Additional properties
+    timestamp = None  # items.metadata.creationTimestamp
+    labels = {}  # items.metadata.labels
+    # items.status.replicas
+    # items.status.updatedReplicas
+    # items.status.readyReplicas
+    # items.status.availableReplicas
+    # items.status.conditions [] => type, status, lastUpdateTime, lastTransitionTime, reason, message
+    # replicas: Mapped[KubernetesDeploymentReplicaSet] = None
+    # items.status.conditions [] => one of the array has type=Progressing, status=True, reason=NewReplicaSetAvailable, message="ReplicaSet \"app-deployment-5dcd13a44x\" has successfully progressed."
+    pod = None
+    status = None
+    data = None
+
+    def set_properties_from_kubernetes(self, deployment: V1Deployment):
+        if deployment is None:
+            return
+        self.timestamp = deployment.metadata.creation_timestamp
+        self.labels = deployment.metadata.labels
+        self.status = deployment.status
+        # self.replicas = KubernetesDeploymentReplicaSet(deployment.status)
+        self.pod = KubernetesDeploymentModel.extract_pod_from_deployment(deployment.status.conditions)
+
+    @staticmethod
+    def extract_pod_from_deployment(objects: [V1DeploymentCondition]):
+        """Finds the deployment name from the given objects.
+
+          Args:
+            objects: A list of objects.
+
+          Returns:
+            The deployment name, or None if not found.
+            """
+        if objects is None:
+            return
+        for obj in objects:
+            if obj.type == 'Progressing' and obj.status == 'True':
+                match = re.search(r"ReplicaSet \"(.*?)\" has successfully progressed.", obj.message)
+                if match:
+                    return match.group(1)
+        return None
+
+    @staticmethod
+    def swap_order(id1, id2):
+        print(f"Id1{id1} id2: {id2}")
+        db = DBProcessor()
+        db.swap_order(KubernetesDeploymentModel, id1=id1, id2=id2)
+        return db.get(KubernetesDeploymentModel)
 
 
 class PodModel:
@@ -127,22 +211,36 @@ class DeploymentModel:
         return data
 
     @staticmethod
-    def print_list(data, namespace):
+    def print_list(data: Dict[str, KubernetesDeploymentModel], namespace):
         clear_console()
         deployment_list = []
-        for deployment in data:
+        i = 1
+        for key, deployment in data.items():
             deployment_list.append(
-                [deployment.id,
-                 DeploymentModel.ready_highlighter(deployment.ready, deployment.name),
-                 DeploymentModel.ready_highlighter(deployment.ready),
-                 deployment.up_to_date,
-                 deployment.available,
-                 deployment.age,
-                 deployment.stateful_set,
-                 deployment.selected
-                 ])
+                [
+                    i,
+                    key,
+                    # DeploymentModel.ready_highlighter(deployment.data.ready_replicas),
+                    # deployment.id,
+                    # DeploymentModel.ready_highlighter(deployment.ready, deployment.name),
+                    # DeploymentModel.ready_highlighter(deployment.ready),
+                    # deployment.up_to_date,
+                    # deployment.available,
+                    # deployment.age,
+                    deployment.stateful_set,
+                    deployment.selected
+                ])
+            i += 1
         print(f"Deployments for namespace: {color_text(BGREEN_TEXT, namespace)}")
-        headers = ["ID", "NAME", "READY", "UP-TO-DATE", "AVAILABLE", "AGE", "STATEFUL_SET", "SELECTED"]
+        headers = [
+            "ID",
+            "NAME",
+            # "READY",
+            # "UP-TO-DATE",
+            # "AVAILABLE",
+            # "AGE",
+            "STATEFUL_SET",
+            "SELECTED"]
         print(tabulate(deployment_list, headers=headers))
 
     @staticmethod

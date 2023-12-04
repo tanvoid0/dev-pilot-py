@@ -1,28 +1,35 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
+from py_helper.processor.file.file_processor import FileProcessor
+from py_helper.utility.base64util import Base64Util
 
 
 class UtilityScript(OptionGroupModel):
+    file_processor = FileProcessor()
 
     def __init__(self):
         super().__init__(
             "Useful Utilities",
             [
-                OptionModel("b64e", "Base64 Ecode", "e.g., echo '$1' | base64", UtilityScript.encode),
-                OptionModel("b64d", "Base64 Decode", "e.g., echo '$1' | base64 --decode", UtilityScript.decode),
-                OptionModel("c", "Run custom command", "e.g., echo 'Hello World'", UtilityScript.custom_command)
+                OptionModel("u1", "Base64 Ecode", "", UtilityScript.encode),
+                OptionModel("u2", "Base64 Decode", "", UtilityScript.decode),
+                OptionModel("note", "Open Notepad", "", self.open_with_notepad),
+                OptionModel("c", "Run custom command", "e.g., echo 'Hello World'", UtilityScript.custom_command),
             ]
         )
 
     @staticmethod
     def decode():
         data = Commander.persistent_input("Enter Base64 String to decode")
-        Commander.execute(f"echo '{data}' | base64 --decode", show=True)
+        print(Base64Util.decode(data))
 
     @staticmethod
     def encode():
         data = Commander.persistent_input("Enter String to encode to Base64")
-        Commander.execute(f"echo '{data}' | base64", show=True)
+        print(Base64Util.encode(data))
+
+    def open_with_notepad(self):
+        self.file_processor.reader.read(None, with_notepad=True)
 
     @staticmethod
     def custom_command():

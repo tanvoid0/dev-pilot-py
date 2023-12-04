@@ -1,0 +1,75 @@
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QScrollArea, QTableWidget, \
+    QTableWidgetItem
+
+
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        # Set the initial height and width of the app
+        self.setGeometry(0, 0, 600, 400)
+
+        # Create a layout for the window
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        # Create a topbar widget
+        topbar = QWidget()
+        topbar.setFixedHeight(50)
+
+        # Create a scroll area for the body
+        body = QScrollArea()
+        body.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        body.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        # Add the topbar and body to the window layout
+        layout.addWidget(topbar)
+        layout.addWidget(body)
+
+        # Create a label for the topbar
+        topbar_label = QLabel("Sticky Topbar")
+        topbar_label.setAlignment(Qt.AlignCenter)
+
+        # Add the label to the topbar
+        topbar_layout = QHBoxLayout()
+        topbar_layout.addWidget(topbar_label)
+        topbar.setLayout(topbar_layout)
+
+        # Create a table widget for the body
+        table = QTableWidget()
+
+        # Set the number of rows and columns in the table
+        table.setRowCount(100)
+        table.setColumnCount(5)
+
+        # Set the headers for the table
+        table.setHorizontalHeaderLabels(["Index", "Name", "Service Name", "Selection", "Action"])
+
+        # Add data to the table
+        for i in range(100):
+            index_item = QTableWidgetItem(str(i))
+            name_item = QTableWidgetItem(f"Item {i}")
+            service_name_item = QTableWidgetItem(f"Service {i}")
+            selection_item = QTableWidgetItem(f"Selection {i}")
+            action_item = QTableWidgetItem(f"Action {i}")
+
+            table.setItem(i, 0, index_item)
+            table.setItem(i, 1, name_item)
+            table.setItem(i, 2, service_name_item)
+            table.setItem(i, 3, selection_item)
+            table.setItem(i, 4, action_item)
+
+        # Set the table widget as the scroll area's widget
+        body.setWidget(table)
+
+        # Show the window
+        self.show()
+
+
+if __name__ == "__main__":
+    app = QApplication([])
+
+    window = MainWindow()
+
+    app.exec_()

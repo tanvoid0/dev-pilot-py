@@ -1,9 +1,12 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
+from py_helper.processor.file.file_processor import FileProcessor
 from py_helper.utility.command_string_generator import CommandStringGenerator
 
 
 class InternetScript(OptionGroupModel):
+    file_processor = FileProcessor()
+
     def __init__(self):
         super().__init__(
             "Internet Utilities",
@@ -36,7 +39,7 @@ class InternetScript(OptionGroupModel):
         data = Commander.persistent_input("Enter port to kill")
         Commander.execute_shell(f"npx kill-port {data}")
 
-    @staticmethod
-    def launch_notepad():
-        Commander.execute_shell(
-            "xdg-open /home/tan/Documents/config/dev-pilot-py/kube-configs/payment-service/payment-service-config-2023-09-29-19-31-48.yaml")
+    def launch_notepad(self):
+        file = self.file_processor.reader.select_file()
+        if file is not None:
+            Commander.execute_shell(CommandStringGenerator.launch_notepad(file))

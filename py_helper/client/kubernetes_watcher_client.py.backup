@@ -1,0 +1,89 @@
+import threading
+
+from kubernetes import watch, client, config
+
+
+class KubernetesWatcherClient:
+
+    # Function to fetch a list of resources in a given namespace
+    def list_resources(self, namespace):
+        resources = {}
+        api_instance = client.AppsV1Api()
+
+        try:
+            deployment_list = api_instance.list_namespaced_deployment(namespace, pretty="true")
+            statefulset_list = api_instance.list_namespaced_stateful_set(namespace, pretty="true")
+
+            for deployment in deployment_list.items:
+                resources[deployment.metadata.name].metadata = deployment.metadata
+                resources[deployment.metadata.name].status = deployment.status
+            for statefulset in statefulset_list.items:
+                resources[statefulset.metadata.name] = statefulset
+
+            return resources
+        except Exception as e:
+            print(f"Error fetching resources in namespace {namespace}: {e}")
+            return None
+
+    # Function to watch for changes in deployments
+    def watch_deployments(self, namespace, resources):
+        w = watch.Watch()
+        api_instance = client.AppsV1Api()
+        resource_version = ""
+
+        while True:
+            try:
+                stream = w.stream(api_instance.list_namespaced_deployment, namespace, resource_version=resource_version)
+                for event in stream:
+                    if event['type'] == 'ADDED' or event['type'] == 'MODIFIED':
+                        resource = event['object']
+                        resource_name = resource.metadata.name
+                        resources[resource_name] = resource
+                        resource_version = resource.metadata.resource_version
+                        print(f"Deployment {resource_name} has been {event['type']}.")
+            except Exception as e:
+                print(f"Error watching deployments in namespace {namespace}: {e}")
+
+    # Function to watch for changes in stateful sets
+    def watch_statefulsets(self, namespace, resources):
+        w = watch.Watch()
+        api_instance = client.AppsV1Api()
+        resource_version = ""
+
+        while True:
+            try:
+                stream = w.stream(api_instance.list_namespaced_stateful_set, namespace,
+                                  resource_version=resource_version)
+                for event in stream:
+                    if event['type'] == 'ADDED' or event['type'] == 'MODIFIED':
+                        resource = event['object']
+                        resource_name = resource.metadata.name
+                        resources[resource_name] = resource
+                        resource_version = resource.metadata.resource_version
+                        print(f"StatefulSet {resource_name} updated.")
+            except Exception as e:
+                print(f"Error watching stateful sets in namespace {namespace}: {e}")
+
+    def reset_watcher(self, new_namespace, resources):
+        resources.clear()
+        resources.update(self.list_resources(new_namespace))
+        return resources
+
+    def run(self, initial_namespace="jay"):
+        config.load_kube_config()
+
+        resources = {}
+        print(f"Watching resources in namespace {initial_namespace}")
+        resources.update(self.list_resources(initial_namespace))
+
+        deployment_thread = threading.Thread(target=self.watch_deployments, args=(initial_namespace, resources))
+        statefulset_thread = threading.Thread(target=self.watch_statefulsets, args=(initial_namespace, resources))
+
+        deployment_thread.start()
+        statefulset_thread.start()
+
+        while True:
+            user_namespace = input("Enter a new namespace to watch (or press Enter to exit): ")
+            if user_namespace == "":
+                break
+            resources = self.reset_watcher(user_namespace, resources)

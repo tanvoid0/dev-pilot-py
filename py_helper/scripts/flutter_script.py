@@ -1,10 +1,12 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
-from py_helper.models.project_model import ProjectModel
 from py_helper.processor.commander import Commander
-from py_helper.scripts.string_generator.flutter_command_string_generator import FlutterCommandStringGenerator
+from py_helper.service.project_service import ProjectService
+from py_helper.service.string_generator.flutter_command_string_generator import FlutterCommandStringGenerator
 
 
 class FlutterScript(OptionGroupModel):
+    project_service = ProjectService()
+
     def __init__(self):
         super().__init__(
             "Flutter Scripts",
@@ -34,12 +36,10 @@ class FlutterScript(OptionGroupModel):
     def doctor():
         Commander.execute_shell(FlutterCommandStringGenerator.doctor())
 
-    @staticmethod
-    def pub_get_packages():
-        project = ProjectModel.find_active_project()
+    def pub_get_packages(self):
+        project = self.project_service.find_active_project()
         Commander.execute_shell(FlutterCommandStringGenerator.pub_get_packages(project.path))
 
-    @staticmethod
-    def clean_build_models():
-        project = ProjectModel.find_active_project()
+    def clean_build_models(self):
+        project = self.project_service.find_active_project()
         Commander.execute_shell(FlutterCommandStringGenerator.clean_build_models(project.path))

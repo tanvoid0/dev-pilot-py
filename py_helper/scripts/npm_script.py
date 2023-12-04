@@ -1,10 +1,12 @@
 from py_helper.models.option_model import OptionGroupModel, OptionModel
-from py_helper.models.project_model import ProjectModel
 from py_helper.processor.commander import Commander
-from py_helper.scripts.string_generator.npm_command_string_generator import NpmCommandStringGenerator
+from py_helper.service.project_service import ProjectService
+from py_helper.service.string_generator.npm_command_string_generator import NpmCommandStringGenerator
 
 
 class NpmScript(OptionGroupModel):
+    project_service = ProjectService()
+
     def __init__(self):
         super().__init__(
             "Npm Commands",
@@ -18,32 +20,26 @@ class NpmScript(OptionGroupModel):
             ]
         )
 
-    @staticmethod
-    def install():
-        active_project = ProjectModel.find_active_project()
+    def install(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.install(active_project.path))
 
-    @staticmethod
-    def clean_install():
-        active_project = ProjectModel.find_active_project()
+    def clean_install(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.clean_install(active_project.path))
 
-    @staticmethod
-    def start():
-        active_project = ProjectModel.find_active_project()
+    def start(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.start(active_project.start))
 
-    @staticmethod
-    def test():
-        active_project = ProjectModel.find_active_project()
+    def test(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.test(active_project.path))
 
-    @staticmethod
-    def lint():
-        active_project = ProjectModel.find_active_project()
+    def lint(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.lint(active_project.path))
 
-    @staticmethod
-    def build():
-        active_project = ProjectModel.find_active_project()
+    def build(self):
+        active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.build(active_project.path))

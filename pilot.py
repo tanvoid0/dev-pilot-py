@@ -2,12 +2,14 @@ import subprocess
 import sys
 from enum import Enum
 
-from py_helper.models.project_model import ProjectModel, ProjectType
+from py_helper.gui_app.kubernetes_app import KubernetesApp
+from py_helper.models.project_model import ProjectType
 from py_helper.processor.commander import Commander
 from py_helper.processor.print_processor import color_text, BRED_TEXT
 from py_helper.scripts.docker_script import DockerScript
 from py_helper.scripts.kubernetes_script import KubernetesScript
 from py_helper.scripts.maven_script import MavenScript
+from py_helper.service.project_service import ProjectService
 
 #
 args = sys.argv
@@ -58,6 +60,10 @@ if __name__ == "__main__":
             # output = subprocess.run(
             #     dictionary["exec"], shell=True
             # )  # capture_output=True, reads the output
+        if "run" in dictionary and dictionary['run'] != '' and dictionary['run'] is not None:
+            if dictionary['run'] == 'kubernetes':
+                KubernetesApp()
+                # KubernetesScript().cli_deployment_dashboard_view()
         if "pilot" in dictionary:
             print("Pilot dictionary")
             dictionary['pilot'] = dictionary['pilot'].split(",")
@@ -66,7 +72,7 @@ if __name__ == "__main__":
             commands = []
 
             if AutoPilotSequence.PROJECT.value in dictionary['pilot']:
-                active_project = ProjectModel.find_active_project()
+                active_project = ProjectService().find_active_project()
                 print(active_project.type)
                 if active_project.type == ProjectType.MAVEN.value:
                     commands += MavenScript.auto_pilot()

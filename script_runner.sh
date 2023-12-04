@@ -1,13 +1,11 @@
 #!/bin/bash
 
-db_file="data.json"
-
 function hello_world() {
   echo "Hello";
 }
 
 function saveData() {
-
+  echo "Hello"
 }
 
 echo "Before"

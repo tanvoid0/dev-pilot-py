@@ -1,5 +1,6 @@
 import os
 import subprocess
+import webbrowser
 
 import pandas as pd
 from tabulate import tabulate
@@ -14,6 +15,11 @@ def empty_string(data):
 
 
 class Commander:
+    def get_terminal_name(self):
+        return OSCommander.run(
+            linux=lambda: "gnome-terminal",
+        )
+
     @staticmethod
     def execute(commands, show=False, sync=False):
         if sync:
@@ -71,7 +77,7 @@ class Commander:
             )
 
     @staticmethod
-    def execute_python(execute="", args=None, sync=False):
+    def execute_python(execute=None, args=None, sync=False):
         print(os.getcwd())
         if args is None:
             args = []
@@ -80,7 +86,7 @@ class Commander:
         OSCommander.run(
             windows=lambda: (
                 subprocess.Popen(
-                    ["start", "cmd", "/k", "python", "pilot.py", f"exec='{execute}'"] + args,
+                    ["start", "cmd", "/k", "python", "pilot.py", "" if execute is None else f"exec='{execute}'"] + args,
                     shell=True,
                 )
             ),
@@ -91,6 +97,10 @@ class Commander:
                 )
             )
         )
+
+    @staticmethod
+    def open_url(url: str):
+        webbrowser.open(url, new=0, autoraise=True)
 
     @staticmethod
     def print(commands):
@@ -125,4 +135,8 @@ class Commander:
 
     @staticmethod
     def open_with_notepad(file_path):
-        Commander.execute_shell(CommandStringGenerator.launch_notepad(file_path))
+        Commander.execute(CommandStringGenerator.launch_notepad(file_path))
+
+    @staticmethod
+    def on_key_press():
+        pass

@@ -1,11 +1,15 @@
-from py_helper.models.exception.exception_model import ExceptionModel
+from py_helper.models.exception.app_exception import AppException
 from py_helper.models.option_model import OptionGroupModel, OptionModel
-from py_helper.models.project_model import ProjectModel
 from py_helper.processor.commander import Commander
-from py_helper.scripts.string_generator.docker_command_string_generator import DockerCommandStringGenerator
+from py_helper.service.config_service import ConfigService
+from py_helper.service.project_service import ProjectService
+from py_helper.service.string_generator.docker_command_string_generator import DockerCommandStringGenerator
 
 
 class DockerScript(OptionGroupModel):
+    config_service = ConfigService()
+    project_service = ProjectService()
+
     def __init__(self):
         super().__init__(
             "Docker Commands",
@@ -17,38 +21,42 @@ class DockerScript(OptionGroupModel):
             ]
         )
 
-    @staticmethod
-    def auto_pilot():
-        active_project = ProjectModel.find_active_project()
-        return [
-            DockerCommandStringGenerator.build(active_project.path, active_project.image_name),
-            DockerCommandStringGenerator.push(active_project.path, active_project.image_name)
-        ]
+    def auto_pilot(self):
+        active_project = self.project_service.find_active_project()
+        config = self.config_service.get_config()
+        if active_project is None:
+            return []
+        else:
+            return [
+                DockerCommandStringGenerator.build(active_project.path, config.get_docker_image_for_active_project()),
+                DockerCommandStringGenerator.push(active_project.path, config.get_docker_image_for_active_project())
+            ]
 
-    @staticmethod
-    def build(external=True):
+    def build(self, external=True):
         try:
-            active_project = ProjectModel.find_active_project()
-            cmd = DockerCommandStringGenerator.build(active_project.path, active_project.image_name)
+            config = self.config_service.get_config()
+            active_project = self.project_service.find_active_project()
+            image_tag = config.get_docker_image_for_active_project()
+            cmd = DockerCommandStringGenerator.build(active_project.path, image_tag)
             # f"cd {active_project.path} && docker build --network=host --tag {active_project.docker_pre_tag}/{active_project.name}:{active_project.docker_post_tag} ."
             if external:
                 Commander.execute_shell(cmd)
             else:
                 Commander.execute(cmd)
-        except ExceptionModel as ex:
+        except AppException as ex:
             ex.print()
 
-    @staticmethod
-    def push(external: True):
+    def push(self, external=True):
         try:
-            active_project = ProjectModel.find_active_project()
-            cmd = DockerCommandStringGenerator.push(active_project.path,
-                                                    f"{active_project.docker_pre_tag}/{active_project.name}:{active_project.docker_post_tag}")
+            config = self.config_service.get_config()
+            active_project = self.project_service.find_active_project()
+            image_tag = config.get_docker_image_for_active_project()
+            cmd = DockerCommandStringGenerator.push(active_project.path, image_tag)
             #     f"cd {active_project.path} && docker push "
             # f"{active_project.docker_pre_tag}/{active_project.name}:{active_project.docker_post_tag}"
             if external:
                 Commander.execute_shell(cmd)
             else:
                 Commander.execute(cmd)
-        except ExceptionModel as ex:
+        except AppException as ex:
             ex.print()

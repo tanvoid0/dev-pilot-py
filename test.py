@@ -1,16 +1,20 @@
-# import subprocess
-# import sys
+# from py_helper.service.kubernetes_service import KubernetesService
 #
-# args = sys.argv
+# kubernetes_service = KubernetesService()
 #
-# if __name__ == '__main__':
-#     print("Running script")
-#     subprocess.Popen("gnome-terminal --command=\"bash -c 'ls; echo $SHELL'\"")
-#     # command_to_run = "\"echo 'Hello World'\""
-#     # os.system("./exec.sh \"echo 'Hello World'\"")
-#     # subprocess.run(['./exec.sh', command_to_run], shell=True)
-#     # subprocess.Popen('python3 exec.py a=b', shell=True)
-#     input("Test")
+# initial_namespace = "jay"
+# print(f"Watching deployments in namespace {initial_namespace}")
+# resources = kubernetes_service.client.get_deployments_and_stateful_sets(initial_namespace)
+#
+# if resources is not None:
+#     kubernetes_service.client.watch_resources(initial_namespace, resources)
+#
+# while True:
+#     user_namespace = input("Enter a new namespace to watch (or press Enter to exit): ")
+#     if user_namespace == "":
+#         break
+#     kubernetes_service.client.reset_watcher(user_namespace, resources)
+from py_helper.gui_app.kubernetes_app import KubernetesApp
 
-x = True
-print(x)
+# KubernetesWatcherClient().run()
+KubernetesApp()

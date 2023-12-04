@@ -3,7 +3,7 @@ from datetime import datetime
 from py_helper.processor.print_processor import color_text, BYELLOW_TEXT, BRED_TEXT
 
 
-class ExceptionModel(Exception):
+class AppException(Exception):
     def __init__(self, message: str):
         self.message = message
         self.timestamp = datetime.now()

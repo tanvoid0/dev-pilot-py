@@ -1,7 +1,7 @@
 import platform
 
 from py_helper.models.exception.operating_system_implementation_required_exception import \
-    OperatingSystemImplementationRequiredException
+    OperatingSystemImplementationRequiredAppException
 
 
 class OSCommander:
@@ -13,15 +13,15 @@ class OSCommander:
             return common()
         elif OSCommander.os == "Windows":
             if windows is None:
-                raise OperatingSystemImplementationRequiredException(OSCommander.os)
+                raise OperatingSystemImplementationRequiredAppException(OSCommander.os)
             return windows()
         elif OSCommander.os == "Linux":
             if linux is None:
-                raise OperatingSystemImplementationRequiredException(OSCommander.os)
+                raise OperatingSystemImplementationRequiredAppException(OSCommander.os)
             return linux()
         elif OSCommander.os == "Mac":
             if linux is None:
-                raise OperatingSystemImplementationRequiredException(OSCommander.os)
+                raise OperatingSystemImplementationRequiredAppException(OSCommander.os)
             return mac()
         else:
-            raise OperatingSystemImplementationRequiredException(OSCommander.os)
+            raise OperatingSystemImplementationRequiredAppException(OSCommander.os)

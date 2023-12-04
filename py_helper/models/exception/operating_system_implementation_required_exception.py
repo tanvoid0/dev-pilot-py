@@ -1,9 +1,9 @@
 import platform
 
-from py_helper.models.exception.exception_model import ExceptionModel
+from py_helper.models.exception.app_exception import AppException
 
 
-class OperatingSystemImplementationRequiredException(ExceptionModel):
+class OperatingSystemImplementationRequiredAppException(AppException):
     def __init__(self, os):
         self.os = os
         if os is None:

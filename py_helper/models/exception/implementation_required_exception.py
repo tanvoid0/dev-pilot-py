@@ -1,10 +1,10 @@
-from py_helper.models.exception.exception_model import ExceptionModel
+from py_helper.models.exception.app_exception import AppException
 
 
-class ImplementationRequiredException(ExceptionModel):
+class ImplementationRequiredAppException(AppException):
     def __init__(self):
         super("Implementation Required for this function")
 
     @staticmethod
     def ex():
-        raise ImplementationRequiredException()
+        raise ImplementationRequiredAppException()

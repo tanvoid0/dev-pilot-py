@@ -1,4 +1,4 @@
-from py_helper.models.exception.input_required_exception import InputRequiredException
+from py_helper.models.exception.input_required_exception import InputRequiredAppException
 
 
 class Validator:
@@ -12,4 +12,4 @@ class Validator:
                     missing_fields.append(key)
 
         if len(missing_fields) > 0:
-            raise InputRequiredException(missing_fields)
+            raise InputRequiredAppException(missing_fields)

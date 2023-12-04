@@ -1,39 +1,95 @@
 import os
 
-from py_helper.processor.file_processor import FileProcessor
-
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 
-from py_helper.processor.print_processor import RED_TEXT, GREEN_TEXT, YELLOW_TEXT, color_text
-
-db_engine = create_engine("sqlite:///{}".format(os.path.join(FileProcessor.current_path(), "db.sqlite")), echo=False)
+from py_helper.models.base_model import BaseModel
+from py_helper.models.exception.resource_not_found_exception import ResourceNotFoundException
+from py_helper.processor.file.file_processor import FileProcessor
+from py_helper.processor.print_processor import color_text, GREEN_TEXT, YELLOW_TEXT
 
 
 def get_db_engine():
+    db_engine = create_engine("sqlite:///{}".format(os.path.join(FileProcessor.current_path(), "db.sqlite")),
+                              echo=False)
     return db_engine
 
 
 def get_session():
-    return sessionmaker(bind=db_engine)()
+    return sessionmaker(bind=get_db_engine())()
 
 
 class DBProcessor:
-    def insert(self, model):
+    def get_session(self):
+        return get_session()
+
+    def get_engine(self):
+        return get_db_engine()
+
+    def initiate_data(self):
+        try:
+            session = get_session()
+            db_engine = get_db_engine()
+            BaseModel.metadata.create_all(db_engine)
+            print(color_text(YELLOW_TEXT, "Creating ") + "database")
+            print("Database " + color_text(GREEN_TEXT, "created\n"))
+
+            print(color_text(GREEN_TEXT, "Setting up") + " runtime vars")
+
+            session.commit()
+        except Exception as ex:
+            print("Database Connection Failed {}".format(ex))
+            raise ex
+
+    def insert(self, model) -> int:
+        print(f"Inserting data: {model}")
         session = get_session()
         session.add(model)
         session.commit()
         return model.id
 
     def get(self, model):
-        session = get_session()
+        session = self.get_session()
         return session.query(model).all()
 
-    def find_by_id(self, model, id):
-        session = get_session()
-        return session.query(model).filter_by(id=id).first()
+    def find_by_id(self, model, _id: int):
+        session = self.get_session()
+        result = session.query(model).filter_by(id=_id).first()
+        if result is None:
+            raise ResourceNotFoundException(model.__class__.__name__, 'id', _id)
+        return result
 
     # TODO: requires additional work
     def update(self, model, update_data):
-        session = get_session()
+        session = self.get_session()
+        session.commit()
+
+    def next_id_for_table(self, model):
+        session = self.get_session()
+        max_id = session.query(func.max(model.id)).scalar()
+        if max_id is None:
+            return 1
+        return max_id + 1
+
+    def next_order_seq_for_table(self, model):
+        session = self.get_session()
+        max_seq = session.query(func.max(model.order_seq)).scalar()
+        if max_seq is None:
+            return 1
+        return max_seq + 1
+
+    def swap_order(self, model, id1, id2):
+        session = self.get_session()
+
+        # Identify the rows to swap (you can use some criteria to identify the rows)
+        row1 = session.query(model).filter_by(id=id1).first()
+        row2 = session.query(model).filter_by(id=id2).first()
+
+        # Retrieve the values of the column 'order_seq' from both rows
+        value1 = row1.order_seq
+        value2 = row2.order_seq
+
+        row1.order_seq = value2
+        row2.order_seq = value1
+
         session.commit()
