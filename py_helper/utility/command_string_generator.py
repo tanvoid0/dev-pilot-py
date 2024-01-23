@@ -6,8 +6,11 @@ from py_helper.processor.os_commander import OSCommander
 class CommandStringGenerator:
     @staticmethod
     def launch_notepad(file_path):
+        # Try to use FileReaderProcessor.open_file_with_notepad
         return OSCommander.run(
-            linux=lambda: f"xdg-open {file_path}"
+            linux=lambda: f"xdg-open {file_path}",
+            windows=lambda: f"notepad.exe {file_path}",
+            mac=lambda: f"gedit {file_path}"
         )
 
     @staticmethod

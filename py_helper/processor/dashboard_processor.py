@@ -99,11 +99,11 @@ class DashboardProcessor:
             print("No option found")
         except AppException as ex:
             ex.print()
-            raise ex
+            # raise ex
         except Exception as ex:
-            print("Some exception occurred")
+            print("Unknown exception occurred")
             print(ex)
-            raise ex
+            # raise ex
         finally:
             press_enter_to_continue()
 
