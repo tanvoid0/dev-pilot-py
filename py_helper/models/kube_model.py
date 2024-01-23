@@ -53,6 +53,7 @@ class KubernetesDeploymentModel(BaseModel):
     # items.status.conditions [] => one of the array has type=Progressing, status=True, reason=NewReplicaSetAvailable, message="ReplicaSet \"app-deployment-5dcd13a44x\" has successfully progressed."
     pod = None
     status = None
+    pod_status = None
     data = None
 
     def set_properties_from_kubernetes(self, deployment: V1Deployment):
@@ -62,7 +63,16 @@ class KubernetesDeploymentModel(BaseModel):
         self.labels = deployment.metadata.labels
         self.status = deployment.status
         # self.replicas = KubernetesDeploymentReplicaSet(deployment.status)
-        self.pod = KubernetesDeploymentModel.extract_pod_from_deployment(deployment.status.conditions)
+        # TODO: Fix pod name. Come up with a better solution
+        # self.pod = KubernetesDeploymentModel.extract_pod_from_deployment(deployment.status.conditions)
+        if deployment.status is None:
+            self.pod_status = ""
+        elif deployment.status.replicas == 0 or deployment.status.replicas is None:
+            self.pod_status = color_text(BRED_TEXT, "Down")
+        elif deployment.status.ready_replicas == deployment.status.replicas:
+            self.pod_status = color_text(BGREEN_TEXT, "Running")
+        else:
+            self.pod_status = color_text(BYELLOW_TEXT, "Starting")
 
     @staticmethod
     def extract_pod_from_deployment(objects: [V1DeploymentCondition]):

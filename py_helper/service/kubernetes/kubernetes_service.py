@@ -61,8 +61,8 @@ class KubernetesService:
     Logger
     """
 
-    def log_pod(self):
-        pass
+    def log_pod(self, pod_name: str, namespace: str):
+        Commander.execute_shell(f"kubectl logs -f {pod_name} -n {namespace}")
 
     @staticmethod
     def get_token():
@@ -123,7 +123,6 @@ class KubernetesService:
         deployments_map = {}
         deployments_map_with_live_data = {}
 
-        # Something resets the selected in this loop
         for item in deployments_from_db:
             deployments_map[item.name] = item
 
@@ -166,15 +165,33 @@ class KubernetesService:
         for key, deployment in data.items():
             deployment_list.append(
                 [deployment.order_seq,
+                 '✓' if deployment.selected else '▢',
                  deployment.name,
+                 deployment.pod_status,
                  deployment.service_name,
                  deployment.pod,
                  '✓' if deployment.stateful_set else '▢',
-                 '✓' if deployment.selected else '▢',
                  ])
         print(f"Deployments for namespace: {color_text(BGREEN_TEXT, namespace)}")
-        headers = ["Order", "Deployment Name", "Service Name", "Pod Name", "StatefulSet", "Selected"]
+        headers = ["Order", "Selected", "Deployment Name", "Pod Status", "Service Name", "Pod Name", "StatefulSet"]
         print(tabulate(deployment_list, headers=headers, stralign="left"))
+
+    def swap_order(self, order_no, swap_order_no):
+        session = get_session()
+
+        # Identify the rows to swap (you can use some criteria to identify the rows)
+        row1 = session.query(KubernetesDeploymentModel).filter_by(order_seq=order_no).first()
+        row2 = session.query(KubernetesDeploymentModel).filter_by(order_seq=swap_order_no).first()
+
+        # Retrieve the values of the column 'order_seq' from both rows
+        value1 = row1.order_seq
+        value2 = row2.order_seq
+
+        row1.order_seq = value2
+        row2.order_seq = value1
+
+        session.commit()
+        return session.query(KubernetesDeploymentModel).order_by(KubernetesDeploymentModel.order_seq).all()
 
     """
     #################### Watcher Service ##################################################################

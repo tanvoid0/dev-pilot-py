@@ -2,6 +2,7 @@ import subprocess
 import sys
 from enum import Enum
 
+from py_helper.gui_app.diff_app import DiffApp
 from py_helper.gui_app.kubernetes_app import KubernetesApp
 from py_helper.models.project_model import ProjectType
 from py_helper.processor.commander import Commander
@@ -62,8 +63,12 @@ if __name__ == "__main__":
             # )  # capture_output=True, reads the output
         if "run" in dictionary and dictionary['run'] != '' and dictionary['run'] is not None:
             if dictionary['run'] == 'kubernetes':
+                print("Launched a UI App.")
                 KubernetesApp()
                 # KubernetesScript().cli_deployment_dashboard_view()
+            elif dictionary['run'] == 'diff_checker':
+                print("Launched a UI App.")
+                DiffApp.launch()
         if "pilot" in dictionary:
             print("Pilot dictionary")
             dictionary['pilot'] = dictionary['pilot'].split(",")

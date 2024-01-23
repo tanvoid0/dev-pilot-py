@@ -123,8 +123,8 @@ class ProjectService:
 
                 print("s. Select Project")
                 print("a. Add Project")
-                print("b. Update Project")
-                print("c. Remove Project")
+                # print("b. Update Project")
+                # print("c. Remove Project")
                 print("0. Go back")
                 choice = Commander.persistent_input("Enter choice")
                 if choice == '0':

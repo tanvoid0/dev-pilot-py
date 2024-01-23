@@ -3,12 +3,12 @@ from datetime import datetime
 
 import yaml
 
-from py_helper.models.exception.app_exception import AppException
 from py_helper.models.file_type import FileType
 from py_helper.models.option_model import OptionGroupModel, OptionModel
 from py_helper.processor.commander import Commander
 from py_helper.processor.file.file_processor import FileProcessor
-from py_helper.processor.print_processor import press_enter_to_continue, clear_console
+from py_helper.processor.print_processor import press_enter_to_continue, clear_console, color_text, BGREEN_TEXT, \
+    BPURPLE_TEXT
 from py_helper.processor.util_processor import UtilProcessor
 from py_helper.service.config_service import ConfigService
 from py_helper.service.kubernetes.kubernetes_service import KubernetesService
@@ -49,13 +49,19 @@ class KubernetesScript(OptionGroupModel):
                     "kcg",
                     "Get Kubernetes Deployment config",
                     "",
-                    lambda: self.get_yaml_deployment_config(save=True, view=True),
+                    lambda: self.get_yaml_deployment_config(save=True),
                 ),
                 OptionModel(
                     "ksc",
                     "Get Kubernetes Service Config",
                     "",
                     self.get_service_config,
+                ),
+                OptionModel(
+                    "kc",
+                    "Get Kubernetes Config",
+                    "",
+                    lambda: self.get_yaml_config_map(save=True)
                 ),
                 OptionModel(
                     "kcn",
@@ -90,6 +96,7 @@ class KubernetesScript(OptionGroupModel):
 
     def open_kubernetes_dashboard(self):
         config = self.config_service.get_config()
+        self.run_proxy()
         Commander.open_url(
             f"http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/pod?namespace={config.namespace}")
 
@@ -105,7 +112,7 @@ class KubernetesScript(OptionGroupModel):
             self.config_service.update_namespace(namespace=namespace)
 
     def run_proxy(self):
-        Commander.execute_shell("kubectl proxy")
+        Commander.execute_shell("npx kill-port 8001; kubectl proxy;")
 
     def port_forward(self):
         config = self.config_service.get_config()
@@ -132,7 +139,12 @@ class KubernetesScript(OptionGroupModel):
             print("1. Upscale a service")
             print("2. Downscale a service")
             print("3. Restart a service")
-            # print("4. Log Active deployment")
+            print("4. Toggle Selection")
+            print("5. Scale up selected deployments")
+            print("6. Scale down selected deployments")
+            # print("7. Pod Log (Live)")
+            print("pu. Priority Up")
+            print("pd. Priority down")
             # print("5. Toggle selection")
             data = Commander.persistent_input("Enter choice")
             if data == "x":
@@ -164,6 +176,37 @@ class KubernetesScript(OptionGroupModel):
                     continue
                 self.restart_deployment(deployment.name,
                                         stateful_set=deployment.stateful_set)
+            elif data == "4":
+                deployment = self.kubernetes_service.deployment_picker()
+                if deployment is None:
+                    press_enter_to_continue()
+                    continue
+                self.kubernetes_service.toggle_selection(deployment.name)
+                self.kubernetes_service.cli_deployments_init()
+            elif data == "5":
+                self.scale_batch()
+            elif data == "6":
+                self.scale_batch(down=True)
+            elif data == "7":
+                deployment = self.kubernetes_service.deployment_picker()
+                if deployment is None:
+                    press_enter_to_continue()
+                    continue
+                self.kubernetes_service.log_pod(deployment.pod, config.namespace)
+            elif data == "pu":
+                deployment = self.kubernetes_service.deployment_picker()
+                if deployment is None:
+                    press_enter_to_continue()
+                    continue
+                self.kubernetes_service.swap_order(deployment.order_seq, deployment.order_seq - 1)
+                self.kubernetes_service.cli_deployments_init()
+            elif data == "pd":
+                deployment = self.kubernetes_service.deployment_picker()
+                if deployment is None:
+                    press_enter_to_continue()
+                    continue
+                self.kubernetes_service.swap_order(deployment.order_seq, deployment.order_seq + 1)
+                self.kubernetes_service.cli_deployments_init()
 
             # elif data == "4":
             #     print(f"Logging deployment logs for {config.namespace}.{active_project.deployment_name}")
@@ -201,8 +244,8 @@ class KubernetesScript(OptionGroupModel):
             pass
         return log_text
 
-    def swap_deployment_order(self, item1, item2):
-        pass
+    def swap_deployment_order(self, order_no):
+        self.kubernetes_service.swap_order(order_no, order_no + 1)
         # TODO: Fix
         # config_file = self.config_service.get_config_file()
         # deployments = config_file.kubernetes['kubernetes']['deployments']
@@ -236,7 +279,9 @@ class KubernetesScript(OptionGroupModel):
         # Downscale
         cmd = "clear;"
         cmd += CommandStringGenerator.kubernetes_scale(namespace, deployment, True, stateful_set)
-        cmd += UtilProcessor.count_down_timer_shell_string(f"Scaling up {deployment} in ", down_time)
+        cmd += UtilProcessor.count_down_timer_shell_string(
+            f"Scaling {color_text(BGREEN_TEXT, 'up')} {color_text(BPURPLE_TEXT, deployment)} of {color_text(BPURPLE_TEXT, namespace)} namespace in ",
+            down_time)
         cmd += CommandStringGenerator.kubernetes_scale(namespace, deployment, False, stateful_set)
         Commander.execute_shell(cmd)
 
@@ -308,7 +353,7 @@ class KubernetesScript(OptionGroupModel):
         batch_cmd = "".join(cmd)
         Commander.execute_shell(batch_cmd)
 
-    def get_yaml_deployment_config(self, deployment_name=None, namespace=None, save=False, view=False):
+    def get_yaml_deployment_config(self, deployment_name=None, namespace=None, save=False):
         # kubectl get deployment test-deployment -o yaml
         if deployment_name is None:
             active_project = self.project_service.find_active_project()
@@ -350,19 +395,26 @@ class KubernetesScript(OptionGroupModel):
             self.save_file(service_name, 'service', namespace, yaml_config, view=True)
         return yaml_config
 
-    def get_yaml_config_map(self, config_name, namespace, save=False, view=False):
-        if namespace is None or config_name is None:
-            raise AppException("Namespace and/or namespace is required for operation")
+    def get_yaml_config_map(self, config_name=None, namespace=None, save=False):
+        if config_name is None:
+            config_name = Commander.persistent_input("Enter config name")
+        if namespace is None:
+            namespace = self.config_service.get_config().namespace
         yaml_config = Commander.execute(f"kubectl get configmap {config_name} -o yaml -n {namespace}", show=True)
-        yaml_config = yaml.safe_load(yaml_config)
+        yaml_config = self.file_processor.formatter.format_yaml(yaml_config)
         if save:
             self.save_file(config_name, 'config', namespace, yaml_config, view=True)
         return yaml_config
 
-    def get_yaml_secret_config(self, secret_name, namespace, save=False, view=False):
+    def get_yaml_secret_config(self, secret_name=None, namespace=None, save=False):
+        if secret_name is None:
+            secret_name = Commander.persistent_input("Enter secret name")
+        if namespace is None:
+            namespace = self.config_service.get_config().namespace
         Validator.required_validator([{'secret_name': secret_name}, {'namespace': namespace}])
         yaml_config = Commander.execute(f"kubectl get secret {secret_name} -o yaml -n {namespace}", show=False)
-        yaml_config = yaml.safe_load(yaml_config)
+        yaml_config = self.file_processor.formatter.format_yaml(yaml_config)
+        # yaml_config = yaml.safe_load(yaml_config)
         if save:
             self.save_file(secret_name, 'secret', namespace, yaml_config, view=True)
         return yaml_config
@@ -378,3 +430,4 @@ class KubernetesScript(OptionGroupModel):
         self.file_processor.writer.write(file_path, data, file_type=FileType.YAML)
         if view:
             self.file_processor.reader.read(file_path, with_notepad=True)
+        return file_path

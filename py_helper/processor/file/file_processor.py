@@ -2,6 +2,7 @@ import os
 
 from py_helper.models.exception.app_exception import AppException
 from py_helper.models.file_type import FileType
+from py_helper.processor.file.file_formatter import FileFormatter
 from py_helper.processor.file.file_reader_processor import FileReaderProcessor
 from py_helper.processor.file.file_writer_processor import FileWriterProcessor
 
@@ -9,6 +10,7 @@ from py_helper.processor.file.file_writer_processor import FileWriterProcessor
 class FileProcessor:
     reader: FileReaderProcessor = FileReaderProcessor()
     writer: FileWriterProcessor = FileWriterProcessor()
+    formatter: FileFormatter = FileFormatter()
 
     def read(self, file_path, file_type):
         self.reader.read(file_path, file_type)
