@@ -1,6 +1,6 @@
 import os
 
-from py_helper.models.config_file_model import ConfigFileModel, _KubernetesScaleConfigFileModel
+from py_helper.models.config_file_model import ConfigFileModel, KubernetesScaleConfigFileModel
 from py_helper.models.file_type import FileType
 from py_helper.processor.commander import Commander
 from py_helper.processor.db_processor import DBProcessor
@@ -24,7 +24,7 @@ class ConfigFileService:
     def save_config_file(self, file: ConfigFileModel):
         self.file_processor.writer.write(file_path=self.config_file, file_data=file.to_json(), file_type=FileType.JSON)
 
-    def get_kubernetes_scale_config(self) -> _KubernetesScaleConfigFileModel:
+    def get_kubernetes_scale_config(self) -> KubernetesScaleConfigFileModel:
         return self.get_config_file().kubernetes.scale
 
     def create_config_file_from_example_file(self) -> ConfigFileModel:

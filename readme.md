@@ -10,15 +10,20 @@ Please do report if you find anything missing.
 
 ## Linux
 
-gnome-terminal - `sudo apt-get install gnome-terminal`
+### Debian
 
 permit scripts - `sudo chmod +x pilot.py, exec.sh, dev-pilot.py`
-
+gnome-terminal - `sudo apt-get install gnome-terminal`
 tkinter - `sudo apt-get install python3-tk`
 
 pyqt - `sudo apt-get install python3-pyqt5`
 
 cursor `sudo apt install xcb-cursor0`
+
+### Arch
+
+`sudo pacman -S tk`
+`sudo pacman -S gnome-terminal`
 
 ## Work List
 

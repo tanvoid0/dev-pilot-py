@@ -9,7 +9,7 @@ class _VPNConfigFileModel:
         self.config_file = config_file
 
 
-class _KubernetesScaleConfigFileModel:
+class KubernetesScaleConfigFileModel:
     up: int
     down: int
 
@@ -21,9 +21,9 @@ class _KubernetesScaleConfigFileModel:
 class _KubernetesConfigFileModel:
     docker_pre_tag: str
     docker_pre_tag_latest: str
-    scale: _KubernetesScaleConfigFileModel
+    scale: KubernetesScaleConfigFileModel
 
-    def __init__(self, docker_pre_tag=None, docker_pre_tag_latest=None, scale=_KubernetesScaleConfigFileModel()):
+    def __init__(self, docker_pre_tag=None, docker_pre_tag_latest=None, scale=KubernetesScaleConfigFileModel()):
         self.docker_pre_tag = docker_pre_tag
         self.docker_pre_tag_latest = docker_pre_tag_latest
         self.scale = scale
@@ -74,7 +74,7 @@ class ConfigFileModel:
             kubernetes=_KubernetesConfigFileModel(
                 docker_pre_tag=json['kubernetes']['docker_pre_tag'],
                 docker_pre_tag_latest=json['kubernetes']['docker_pre_tag_latest'],
-                scale=_KubernetesScaleConfigFileModel(
+                scale=KubernetesScaleConfigFileModel(
                     up=json['kubernetes']['scale']['up'],
                     down=json['kubernetes']['scale']['down'],
                 )
