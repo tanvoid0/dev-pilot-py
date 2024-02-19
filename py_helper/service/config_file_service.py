@@ -31,9 +31,12 @@ class ConfigFileService:
         if not self.file_processor.file_exists(self.config_file):
             config_file_data = ConfigFileModel()
             self.file_processor.writer.write(self.config_file, config_file_data.to_json(), file_type=FileType.JSON)
+            return config_file_data
         else:
             config_file_data = self.file_processor.reader.read(self.config_file, file_type=FileType.JSON)
-        return ConfigFileModel.from_json(config_file_data)
+            return config_file_data
+        # TODO: Fix return ConfigFileModel.from_json(config_file_data).
+        #  Throws exception with ConfigFileModel is not subscriptable
 
     def create_db_file_if_doesnt_exist(self, reset=False):
         print(

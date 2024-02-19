@@ -17,7 +17,7 @@ class ConfigService:
     def first_time_setup(self):
         try:
             config_data = self.config_file_service.create_config_file_from_example_file()
-            db_file_does_not_exist = self.config_file_service.create_db_file_if_doesnt_exist(config_data.db_reset)
+            db_file_does_not_exist = self.config_file_service.create_db_file_if_doesnt_exist(config_data['db_reset']) # TODO: update when create_config_file_from_example_file is fixed
             if not db_file_does_not_exist:
                 return True
             self.db.initiate_data()
