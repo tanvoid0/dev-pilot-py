@@ -1,17 +1,17 @@
 import difflib
-
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QPushButton, QWidget, QTextBrowser
 
 
 class DiffApp(QMainWindow):
     def __init__(self):
         super(DiffApp, self).__init__()
-
         self.init_ui()
 
     def init_ui(self):
         self.text_edit1 = QTextEdit()
         self.text_edit2 = QTextEdit()
+        self.text_edit1.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.text_edit2.setLineWrapMode(QTextEdit.WidgetWidth)
 
         compare_button = QPushButton('Compare', self)
         compare_button.clicked.connect(self.compare_texts)
@@ -43,11 +43,11 @@ class DiffApp(QMainWindow):
         html = "<html><body><pre>"
         for line in diff:
             if line.startswith('  '):
-                html += "&nbsp;<br>"
+                html += line[2:] + "<br>"
             elif line.startswith('- '):
-                html += f'<span style="color:red;">{line[2:]}<br></span>'
+                html += f'<span style="color:red;">{line[2:]}</span><br>'
             elif line.startswith('+ '):
-                html += f'<span style="color:green;">{line[2:]}<br></span>'
+                html += f'<span style="color:green;">{line[2:]}</span><br>'
         html += "</pre></body></html>"
         return html
 
@@ -55,6 +55,7 @@ class DiffApp(QMainWindow):
         result_window = QMainWindow(self)
         result_text_browser = QTextBrowser(result_window)
         result_text_browser.setHtml(diff_html)
+        result_text_browser.setLineWrapMode(QTextEdit.WidgetWidth)  # Set line wrap mode
 
         result_window.setCentralWidget(result_text_browser)
         result_window.setGeometry(200, 200, 800, 600)
@@ -69,6 +70,4 @@ class DiffApp(QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QApplication([])
-    window = DiffApp()
-    app.exec_()
+    DiffApp.launch()
