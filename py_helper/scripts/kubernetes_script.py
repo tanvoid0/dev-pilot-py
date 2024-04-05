@@ -145,8 +145,14 @@ class KubernetesScript(OptionGroupModel):
             # print("7. Pod Log (Live)")
             print("pu. Priority Up")
             print("pd. Priority down")
+            print("ps. Swap two items")
             # print("5. Toggle selection")
             data = Commander.persistent_input("Enter choice")
+            parts = data.split(":", 1)
+            options = []
+            if len(parts) != 1:
+                data = parts[0].strip()
+                options = [int(num) for num in parts[1].split()]
             if data == "x":
                 break
             elif data == "0":
@@ -155,34 +161,51 @@ class KubernetesScript(OptionGroupModel):
                 continue
             elif data == "1":
                 print("Upscaling service")
-                deployment = self.kubernetes_service.deployment_picker()
-                if deployment is None:
-                    press_enter_to_continue()
-                    continue
-                self.kubernetes_service.scale_service.scale_deployment(deployment.name,
-                                                                       stateful_set=deployment.stateful_set)
+                if len(options) == 0:
+                    options.append(None)
+
+                for option in options:
+                    deployment = self.kubernetes_service.deployment_picker(value=option)
+                    if deployment is None:
+                        press_enter_to_continue()
+                        continue
+                    self.kubernetes_service.scale_service.scale_deployment(deployment.name,
+                                                                           stateful_set=deployment.stateful_set)
             elif data == "2":
                 print("Downscaling service")
-                deployment = self.kubernetes_service.deployment_picker()
-                if deployment is None:
-                    press_enter_to_continue()
-                    continue
-                self.scale_deployment(deployment.name, down=True, stateful_set=deployment.stateful_set)
+                print("Upscaling service")
+                if len(options) == 0:
+                    options.append(None)
+
+                for option in options:
+                    deployment = self.kubernetes_service.deployment_picker(value=option)
+                    if deployment is None:
+                        press_enter_to_continue()
+                        continue
+                    self.scale_deployment(deployment.name, down=True, stateful_set=deployment.stateful_set)
             elif data == "3":
                 print("Restarting service")
-                deployment = self.kubernetes_service.deployment_picker()
-                if deployment is None:
-                    press_enter_to_continue()
-                    continue
-                self.restart_deployment(deployment.name,
-                                        stateful_set=deployment.stateful_set)
+                print("Upscaling service")
+                if len(options) == 0:
+                    options.append(None)
+
+                for option in options:
+                    deployment = self.kubernetes_service.deployment_picker(value=option)
+                    if deployment is None:
+                        press_enter_to_continue()
+                        continue
+                    self.restart_deployment(deployment.name,
+                                            stateful_set=deployment.stateful_set)
             elif data == "4":
-                deployment = self.kubernetes_service.deployment_picker()
-                if deployment is None:
-                    press_enter_to_continue()
-                    continue
-                self.kubernetes_service.toggle_selection(deployment.name)
-                self.kubernetes_service.cli_deployments_init()
+                if len(options) == 0:
+                    options.append(None)
+                for option in options:
+                    deployment = self.kubernetes_service.deployment_picker(value=option)
+                    if deployment is None:
+                        press_enter_to_continue()
+                        continue
+                    self.kubernetes_service.toggle_selection(deployment.name)
+                    self.kubernetes_service.cli_deployments_init()
             elif data == "5":
                 self.scale_batch()
             elif data == "6":
@@ -206,6 +229,13 @@ class KubernetesScript(OptionGroupModel):
                     press_enter_to_continue()
                     continue
                 self.kubernetes_service.swap_order(deployment.order_seq, deployment.order_seq + 1)
+                self.kubernetes_service.cli_deployments_init()
+            elif data == "ps":
+                if len(options) != 2:
+                    pick_options = input("Enter 2 space separated numbers you want to swap: ")
+                    options = [int(num) for num in pick_options.split()]
+
+                self.kubernetes_service.swap_order(options[0], options[1])
                 self.kubernetes_service.cli_deployments_init()
 
             # elif data == "4":

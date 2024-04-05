@@ -30,8 +30,11 @@ class KubernetesService:
         self.deployments = self.get_deployments_with_cloud_data()
 
     ### Warning: Using order instead of id to make them ordered as well as pickable
-    def deployment_picker(self):
-        deployment_order = int(Commander.persistent_input("Enter id of the deployment from the table"))
+    def deployment_picker(self, value=None):
+        if value:
+            deployment_order = value
+        else:
+            deployment_order = int(Commander.persistent_input("Enter id of the deployment from the table"))
         for item in self.deployments:
             if deployment_order == self.deployments[item].order_seq:
                 return self.deployments[item]
@@ -183,6 +186,9 @@ class KubernetesService:
         row1 = session.query(KubernetesDeploymentModel).filter_by(order_seq=order_no).first()
         row2 = session.query(KubernetesDeploymentModel).filter_by(order_seq=swap_order_no).first()
 
+        if row1 is None or row2 is None:
+            print("Invalid order no provided. Retry")
+            return session.query(KubernetesDeploymentModel).order_by(KubernetesDeploymentModel.order_seq).all()
         # Retrieve the values of the column 'order_seq' from both rows
         value1 = row1.order_seq
         value2 = row2.order_seq
