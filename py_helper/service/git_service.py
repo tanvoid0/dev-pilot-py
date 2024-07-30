@@ -20,6 +20,9 @@ class GitService:
         active_project = self.project_service.find_active_project()
         branch_name = Commander.persistent_input("Enter branch name")
         Commander.execute(self.git_string_generator.switch_branch(active_project.path, branch_name), show=True)
+    def push_force_with_lease(self):
+        active_project = self.project_service.find_active_project()
+        Commander.execute(self.git_string_generator.push_force_with_lease(active_project.path), show=True)
 
     def remote_link_generate(self):
         active_project = self.project_service.find_active_project()

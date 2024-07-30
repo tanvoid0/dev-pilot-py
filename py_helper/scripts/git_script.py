@@ -15,5 +15,6 @@ class GitScript(OptionGroupModel):
                             self.git_service.remote_link_generate),
                 OptionModel("gs", "Git Status", "", self.git_service.status),
                 OptionModel("gc", "Git Checkout Branch", "", self.git_service.checkout_branch),
+                OptionModel("gpf", "Git push --force-with-lease", "", self.git_service.push_force_with_lease)
             ]
         )

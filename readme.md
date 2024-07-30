@@ -18,7 +18,7 @@ tkinter - `sudo apt-get install python3-tk`
 
 pyqt - `sudo apt-get install python3-pyqt5`
 
-cursor `sudo apt install xcb-cursor0`
+cursor `sudo apt install xcb-cursor`
 
 ### Arch
 

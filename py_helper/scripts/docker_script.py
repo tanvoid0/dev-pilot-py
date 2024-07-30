@@ -17,7 +17,8 @@ class DockerScript(OptionGroupModel):
                 OptionModel("db", "Docker Build", "builds docker image",
                             lambda: self.build()),
                 OptionModel("dp", "Docker Push", "pushes docker image to cloud",
-                            lambda: self.push())
+                            lambda: self.push()),
+                OptionModel("dbp", "Docker Build & Push", "Builds and pushes an image", lambda: self.build_and_push())
             ]
         )
 
@@ -31,6 +32,19 @@ class DockerScript(OptionGroupModel):
                 DockerCommandStringGenerator.build(active_project.path, config.get_docker_image_for_active_project()),
                 DockerCommandStringGenerator.push(active_project.path, config.get_docker_image_for_active_project())
             ]
+    def build_and_push(self, external=True):
+        try:
+            config = self.config_service.get_config()
+            active_project = self.project_service.find_active_project()
+            image_tag = config.get_docker_image_for_active_project()
+            cmd = DockerCommandStringGenerator.build_and_push(active_project.path, image_tag)
+            # f"cd {active_project.path} && docker build --network=host --tag {active_project.docker_pre_tag}/{active_project.name}:{active_project.docker_post_tag} ."
+            if external:
+                Commander.execute_shell(cmd)
+            else:
+                Commander.execute(cmd)
+        except AppException as ex:
+            ex.print()
 
     def build(self, external=True):
         try:
