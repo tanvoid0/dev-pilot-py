@@ -10,13 +10,12 @@ class InternetScript(OptionGroupModel):
                 OptionModel(
                     "i1", "Ping Utility", "e.g., ping google.com", InternetScript.ping
                 ),
-                OptionModel(
-                    "i2",
-                    "Kill Port Utility",
-                    "e.g., npx kill-port 8080",
-                    InternetScript.kill_port,
-                ),
-                OptionModel("0", "Open Autopilot", "Beta", self.autopilot),
+                # OptionModel(
+                #     "i2",
+                #     "Kill Port Utility",
+                #     "e.g., npx kill-port 8080",
+                #     InternetScript.kill_port,
+                # ),
             ],
         )
 
@@ -29,6 +28,3 @@ class InternetScript(OptionGroupModel):
     def kill_port():
         data = Commander.persistent_input("Enter port to kill")
         Commander.execute_externally(f"npx kill-port {data}")
-
-    def autopilot(self):
-        Commander.execute_python(args=["test script", "x=y", "z", "a=bc"])

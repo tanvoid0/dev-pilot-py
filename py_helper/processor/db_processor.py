@@ -5,7 +5,13 @@ from py_helper.processor.file_processor import FileProcessor
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from py_helper.processor.print_processor import RED_TEXT, GREEN_TEXT, YELLOW_TEXT, color_text, get_config_file
+from py_helper.processor.print_processor import (
+    RED_TEXT,
+    GREEN_TEXT,
+    YELLOW_TEXT,
+    color_text,
+    get_config_file,
+)
 
 db_file = os.path.join(FileProcessor.current_path(), "db.sqlite")
 db_engine = create_engine("sqlite:///{}".format(db_file), echo=False)
@@ -16,19 +22,20 @@ def get_session():
 
 
 class DBProcessor:
-
     def init(self, base_model):
         session = get_session()
         config_data = get_config_file()
         print(
-            f"Database Reset mode: {color_text(RED_TEXT, 'On') if config_data['db']['reset'] else color_text(GREEN_TEXT, 'Off')}")
-        if config_data['db']['reset']:
+            f"Database Reset mode: {color_text(RED_TEXT, 'On') if config_data['db']['reset'] else color_text(GREEN_TEXT, 'Off')}"
+        )
+        if config_data["db"]["reset"]:
             try:
                 FileProcessor.remove(db_file)
             except:
                 print("Database File doesn't exist")
-
-        if not self.db_exists():
+        if self.db_exists():
+            return False
+        else:
             print(f"Database {color_text(RED_TEXT, 'does not exist...')}")
             FileProcessor.save(db_file)
 
@@ -46,7 +53,6 @@ class DBProcessor:
             except Exception as ex:
                 print("Database Connection Failed {}".format(ex))
             return True
-        return False
 
     def insert(self, model):
         session = get_session()

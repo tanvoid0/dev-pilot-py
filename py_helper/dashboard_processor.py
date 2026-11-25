@@ -9,6 +9,7 @@ from py_helper.processor.print_processor import (
     clear_console,
     press_enter_to_continue,
 )
+from py_helper.scripts.auto_pilot import AutoPilotScript
 from py_helper.scripts.docker_script import DockerScript
 from py_helper.scripts.git_script import GitScript
 from py_helper.scripts.internet_script import InternetScript
@@ -37,6 +38,7 @@ class DashboardProcessor:
         self.scripts.append(UtilityScript())
         self.scripts.append(KubernetesScript())
         self.scripts.append(ProjectScript())
+        self.scripts.append(AutoPilotScript())
 
     def add_conditional_scripts(self):
         try:

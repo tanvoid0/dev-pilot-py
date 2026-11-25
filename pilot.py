@@ -35,4 +35,4 @@ if __name__ == "__main__":
             dictionary["exec"], shell=True
         )  # capture_output=True, reads the output
     input("Press Any key to continue")
-# exit()
+    subprocess.run("exit", shell=True)

@@ -22,18 +22,22 @@ class RuntimeVarModel(BaseModel):
     active_project_type: Mapped[str] = mapped_column(String(255), default="Unknown")
     namespace: Mapped[Optional[str]]
     logo_view: Mapped[bool] = mapped_column(Boolean(), default=True)
-    banner_path: Mapped[str] = mapped_column(String(500), default='robot')
+    banner_path: Mapped[str] = mapped_column(String(500), default="robot")
     notification: Mapped[bool] = mapped_column(Boolean(), default=True)
+    first_time_setup: Mapped[bool] = mapped_column(Boolean(), default=True)
 
     @staticmethod
     def init():
         config_data = RuntimeVarModel.get_config_file()
         session = get_session()
-        namespace = config_data['vars']['namespace']
-        docker_pre_tag = config_data['vars']['docker-pre-tag']
+        namespace = config_data["vars"]["namespace"]
+        docker_pre_tag = config_data["vars"]["docker-pre-tag"]
         docker_post_tag = namespace if namespace is not None else "latest"
-        runtime_var = RuntimeVarModel(docker_pre_tag=docker_pre_tag, docker_post_tag=docker_post_tag,
-                                      namespace=namespace)
+        runtime_var = RuntimeVarModel(
+            docker_pre_tag=docker_pre_tag,
+            docker_post_tag=docker_post_tag,
+            namespace=namespace,
+        )
         session.add(runtime_var)
         session.commit()
         print("Runtime vars " + color_text(GREEN_TEXT, "configured..."))

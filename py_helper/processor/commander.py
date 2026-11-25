@@ -55,6 +55,8 @@ class Commander:
                 ["gnome-terminal", "--", command],
                 cwd=os.getcwd(),
             )
+        elif pltform == "Windows":
+            Commander.execute(command)
         else:
             raise "OS Not supported"
 
@@ -71,7 +73,8 @@ class Commander:
             )
         elif pltfrm == "Linux":
             subprocess.Popen(
-                ["gnome-terminal", "--", "python3", "pilot.py", f"exec='{execute}'"] + args,
+                ["gnome-terminal", "--", "python3", "pilot.py", f"exec='{execute}'"]
+                + args,
                 cwd=os.getcwd(),
             )
             # subprocess.Popen(
@@ -95,10 +98,10 @@ class Commander:
     @staticmethod
     def persistent_input(query, optional_data=None):
         query += (
-                     " (" + (color_text(GREEN_TEXT, optional_data) + ")")
-                     if optional_data is not None
-                     else ""
-                 ) + ": "
+            " (" + (color_text(GREEN_TEXT, optional_data) + ")")
+            if optional_data is not None
+            else ""
+        ) + ": "
         while True:
             data = input(query)
             # query + ("(" + color_text(GREEN_TEXT, optional_data) + ")") if optional_data is not None else "" + ": ")
