@@ -1,3 +1,6 @@
+from py_helper.processor.commander import Commander
+
+
 class UtilProcessor:
     @staticmethod
     def round_days(days: int):
@@ -42,3 +45,26 @@ class UtilProcessor:
             if map_object[key] != value:
                 temp_array.append(map_object)
         return temp_array
+
+    @staticmethod
+    def batch_picker(data=None, sort=False):
+        if data is None:
+            data = Commander.persistent_input("Enter choice")
+        parts = data.split(":", 1)
+        options = []
+        if len(parts) > 1:
+            data = parts[0].strip()
+            numbers = set()
+            for part in parts[1:]:
+                if '-' in part:
+                    start, end = map(int, part.split('-'))
+                    numbers.update(range(start, end + 1))
+                else:
+                    numbers.add(int(part))
+            if len(numbers) == 0:
+                options.append(None)
+            elif sort:
+                options = sorted(numbers)
+            else:
+                options = list(numbers)
+        return [data, options]

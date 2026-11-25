@@ -22,30 +22,35 @@ class MavenScript(OptionGroupModel):
                 OptionModel("l2", "Liquibase Create", "", self.liquibase_create_diff),
                 OptionModel("l3", "Liquibase Process", "", self.liquibase_process_diff),
                 OptionModel("l4", "Liquibase Validate", "", self.liquibase_verify_diff),
+                OptionModel("md", "Maven Build Image And Deploy", "", self.build_and_deploy)
 
             ]
         )
 
-    def auto_pilot(self):
+    def auto_pilot(self, args):
         return [
             MavenCommandStringGenerator.clean_install(self.project_service.find_active_project().path,
                                                       without_tests=True),
         ]
 
-    def clean_install(self):
+    def build_and_deploy(self, args):
+        active_project = self.project_service.find_active_project()
+        Commander.execute_shell(MavenCommandStringGenerator.clean_install(active_project.path, True, True))
+
+    def clean_install(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.clean_install(active_project.path))
 
-    def clean_install_without_tests(self, external=True):
+    def clean_install_without_tests(self, external=True, args=None):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.clean_install(active_project.path, without_tests=True),
                                 external=external)
 
-    def test(self):
+    def test(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.test(active_project.path))
 
-    def prepare_pact_test(self):
+    def prepare_pact_test(self, args):
         # active_project = self.project_service.find_active_project()
         # config_file = self.config_service.get_config_file()
         # Commander.execute_shell(
@@ -53,17 +58,17 @@ class MavenScript(OptionGroupModel):
         #     self.maven_string.verify_pact_test(active_project.path, config_file.config.maven.pact_url, config_file.config.maven.pact_branch))
         pass
 
-    def liquibase_prepare_diff(self):
+    def liquibase_prepare_diff(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.liquibase_prepare_for_diff(active_project.path))
 
-    def liquibase_create_diff(self):
+    def liquibase_create_diff(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.liquibase_create_diff(active_project.path))
 
-    def liquibase_process_diff(self):
+    def liquibase_process_diff(self, args):
         raise "Function 'liquibase_process_diff' not implemented yet"
 
-    def liquibase_verify_diff(self):
+    def liquibase_verify_diff(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(MavenCommandStringGenerator.liquibase_verify_diff(active_project.path))

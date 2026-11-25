@@ -1,0 +1,27 @@
+[
+  {
+    "title": "Java Basics",
+    "questions": [
+      {
+        "question": "What is Java?",
+        "options": [
+          "A language",
+          "A framework",
+          "A database",
+          "An OS"
+        ],
+        "answer": 0
+      },
+      {
+        "question": "What is JVM?",
+        "options": [
+          "Java Virtual Machine",
+          "JavaScript VM",
+          "Java Method",
+          "None of the above"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+]

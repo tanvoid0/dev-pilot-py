@@ -69,16 +69,17 @@ class DashboardProcessor:
             self.reinitialize_scripts()
             for script in self.scripts:
                 self.process_script(script)
-            self.print_options()
             self.print_configs()
             self.pick_options()
-            clear_console()
 
     def pick_options(self):
         Commander.on_key_press()
-        self.last_choice = Commander.persistent_input("Pick an option")
+        print("Type 'help' to see available commands")
+        arguments = input("> ")
         Commander.on_key_press()
-        self.run_option(self.last_choice)
+        arguments = arguments.split(" ")
+        self.last_choice = arguments[0]
+        self.run_option(self.last_choice, arguments[1:])
         clear_console()
 
     def copy_commands(self, commands):
@@ -88,24 +89,27 @@ class DashboardProcessor:
                     f'Duplicate keys found. Remove Duplicate option keys \'{value.choice}\' from scripts.')
             self.commands[value.choice] = value
 
-    def run_option(self, option):
+    def run_option(self, option, args):
         if option == "x":
             exit(0)
-        try:
-            for key, value in self.commands.items():
-                if key == option:
-                    value.method()
-                    return
-            print("No option found")
-        except AppException as ex:
-            ex.print()
-            # raise ex
-        except Exception as ex:
-            print("Unknown exception occurred")
-            print(ex)
-            # raise ex
-        finally:
-            press_enter_to_continue()
+        elif option == 'help':
+            self.print_options()
+        else:
+            try:
+                for key, value in self.commands.items():
+                    if key == option:
+                        value.method(args)
+                        press_enter_to_continue()
+                        return
+                print("No option found")
+            except AppException as ex:
+                ex.print()
+                # raise ex
+            except Exception as ex:
+                print("Unknown exception occurred")
+                print(ex)
+                # raise ex
+        press_enter_to_continue()
 
     def print_options(self):
         print("Dev Pilot")

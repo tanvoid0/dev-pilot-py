@@ -128,7 +128,7 @@ class KubernetesScript(OptionGroupModel):
 
     def cli_deployment_dashboard_view(self):
         config = self.config_service.get_config()
-        active_project = self.project_service.find_active_project()
+        # active_project = self.project_service.find_active_project()
         # deployments = self.kubernetes_service.get_deployments_with_cloud_data()
         self.kubernetes_service.cli_deployments_init()
         while True:
@@ -147,12 +147,7 @@ class KubernetesScript(OptionGroupModel):
             print("pd. Priority down")
             print("ps. Swap two items")
             # print("5. Toggle selection")
-            data = Commander.persistent_input("Enter choice")
-            parts = data.split(":", 1)
-            options = []
-            if len(parts) != 1:
-                data = parts[0].strip()
-                options = [int(num) for num in parts[1].split()]
+            data, options = UtilProcessor.batch_picker()
             if data == "x":
                 break
             elif data == "0":
@@ -161,9 +156,6 @@ class KubernetesScript(OptionGroupModel):
                 continue
             elif data == "1":
                 print("Upscaling service")
-                if len(options) == 0:
-                    options.append(None)
-
                 for option in options:
                     deployment = self.kubernetes_service.deployment_picker(value=option)
                     if deployment is None:
@@ -173,9 +165,6 @@ class KubernetesScript(OptionGroupModel):
                                                                            stateful_set=deployment.stateful_set)
             elif data == "2":
                 print("Downscaling service")
-                print("Upscaling service")
-                if len(options) == 0:
-                    options.append(None)
 
                 for option in options:
                     deployment = self.kubernetes_service.deployment_picker(value=option)
@@ -185,9 +174,6 @@ class KubernetesScript(OptionGroupModel):
                     self.scale_deployment(deployment.name, down=True, stateful_set=deployment.stateful_set)
             elif data == "3":
                 print("Restarting service")
-                print("Upscaling service")
-                if len(options) == 0:
-                    options.append(None)
 
                 for option in options:
                     deployment = self.kubernetes_service.deployment_picker(value=option)
@@ -197,8 +183,6 @@ class KubernetesScript(OptionGroupModel):
                     self.restart_deployment(deployment.name,
                                             stateful_set=deployment.stateful_set)
             elif data == "4":
-                if len(options) == 0:
-                    options.append(None)
                 for option in options:
                     deployment = self.kubernetes_service.deployment_picker(value=option)
                     if deployment is None:

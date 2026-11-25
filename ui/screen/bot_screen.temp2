@@ -1,0 +1,95 @@
+import logging
+import os
+
+import llm
+from textual import on, work
+from textual.app import App, ComposeResult
+from textual.containers import VerticalScroll
+from textual.widgets import Footer, Header, Input, Markdown
+
+from bot.bot_interface import ChatHistory
+from bot.config import config
+from bot.factory import BotFactory
+
+# Logging setup for both console and file
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),  # Log file
+        logging.StreamHandler()  # Console output
+    ]
+)
+logger = logging.getLogger(__name__)
+
+try:
+    import google.generativeai as genai
+    from google.generativeai import GenerativeModel, GenerationConfig
+except ImportError:
+    raise ImportError("install the 'llm' package or run with 'uv run mother.py'")
+
+SYSTEM = """Formulate all responses as if you were the sentient AI named Bot 🤖 from the Sci-fi movies."""
+factory = BotFactory(config)
+
+
+class Prompt(Markdown):
+    """Markdown for the user prompt."""
+
+
+class Response(Markdown):
+    """Markdown for the reply from the LLM."""
+    BORDER_TITLE = "Bot 🤖"
+
+
+class BotApp(App):
+    AUTO_FOCUS = "Input"
+    CSS_PATH = "bot_screen.tcss"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.message_limit = 50  # Limit displayed messages to prevent overflow
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        with VerticalScroll(id="chat-view"):
+            yield Response("BOT Interface READY FOR INQUIRY - 🤖")
+        yield Input(placeholder="How can I help you?")
+        yield Footer()
+
+    def on_mount(self) -> None:
+        logger.info("BotApp mounted and ready.")
+        os.environ["OPENAI_API_KEY"] = config["chatgpt_api_key"]
+        self.history = ChatHistory()
+        # self.model = factory.create_bot("gemini", self.history)
+        self.model = llm.get_model("gpt-4o")
+
+    @on(Input.Submitted)
+    async def on_input(self, event: Input.Submitted) -> None:
+        chat_view = self.query_one("#chat-view")
+        event.input.clear()
+        await chat_view.mount(Prompt(event.value))
+        await chat_view.mount(response := Response())
+        response.anchor()
+        self.send_prompt(event.value, response)
+
+    @work(thread=True)
+    def send_prompt(self, prompt: str, response: Response) -> None:
+        """Get the response in a thread."""
+        logger.info(f"Sending prompt to bot: {prompt}")
+        response_content = ""
+        # bot_response = self.model.send_message_stream(prompt)
+        bot_response = self.model.prompt(prompt, system=SYSTEM)
+
+        # Stream chunks and update the UI as each chunk arrives
+        for chunk in bot_response:
+            response_content += chunk
+            logger.debug(f"Received chunk: {chunk}")
+            # Update the response widget with the accumulated content
+            self.call_from_thread(response.update, response_content)
+
+        logger.info("Bot response complete.")
+
+
+if __name__ == "__main__":
+    app = BotApp()
+    app.run()

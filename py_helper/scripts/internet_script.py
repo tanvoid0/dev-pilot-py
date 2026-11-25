@@ -12,16 +12,16 @@ class InternetScript(OptionGroupModel):
             "Internet Utilities",
             [
                 OptionModel(
-                    "i1", "Ping Utility", "e.g., ping google.com", InternetScript.ping
+                    "ping", "Ping Utility", "e.g., ping google.com", InternetScript.ping
                 ),
                 OptionModel(
-                    "i2",
+                    "kill-port",
                     "Kill Port Utility",
-                    "e.g., npx kill-port 8080",
+                    "e.g., kill-port 8080",
                     InternetScript.kill_port,
                 ),
                 OptionModel(
-                    "i3",
+                    "open",
                     "open text",
                     "",
                     self.launch_notepad,
@@ -30,16 +30,25 @@ class InternetScript(OptionGroupModel):
         )
 
     @staticmethod
-    def ping():
-        data = Commander.persistent_input("Enter domain/ip")
+    def ping(args):
+        if args is None or len(args) == 0:
+            data = Commander.persistent_input("Enter domain/ip")
+        else:
+            data = args[0]
         Commander.execute_shell(CommandStringGenerator.ping(data))
 
     @staticmethod
-    def kill_port():
-        data = Commander.persistent_input("Enter port to kill")
+    def kill_port(args):
+        if args is None or len(args) == 0:
+            data = Commander.persistent_input("Enter port to kill")
+        else:
+            data = args[0]
         Commander.execute_shell(f"npx kill-port {data}")
 
-    def launch_notepad(self):
-        file = self.file_processor.reader.select_file()
+    def launch_notepad(self, args):
+        if args is None or len(args) == 0:
+            file = self.file_processor.reader.select_file()
+        else:
+            file = args[0]
         if file is not None:
             Commander.execute_shell(CommandStringGenerator.launch_notepad(file))

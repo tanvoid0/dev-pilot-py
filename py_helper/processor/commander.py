@@ -15,7 +15,8 @@ def empty_string(data):
 
 
 class Commander:
-    def get_terminal_name(self):
+    @staticmethod
+    def get_terminal_name():
         return OSCommander.run(
             linux=lambda: "gnome-terminal",
         )
@@ -52,9 +53,9 @@ class Commander:
         #     text=True,
         # )
         # print("Executing Command {}".format(command_to_run))
-        # subprocess.Popen(['x-terminal-emulator', '-e', 'bash', '-c', 'exec.sh', 'echo "Hello from shell script"'])
+        # subprocess.Popen(['gnome-terminal', '-e', 'bash', '-c', 'exec.sh', 'echo "Hello from shell script"'])
 
-        # output = subprocess.Popen(['x-terminal-emulator', '-e', 'bash', 'exec.sh', command_to_run], shell=True,
+        # output = subprocess.Popen(['gnome-terminal', '-e', 'bash', 'exec.sh', command_to_run], shell=True,
         #                           stdout=subprocess.PIPE, text=True)
         # print("Finished")
         # print(output.stdout)
@@ -132,6 +133,11 @@ class Commander:
     @staticmethod
     def synthesize_path(path: str):
         return path.replace("\\", "/")
+
+    @staticmethod
+    def path_exist(path: str):
+        path = Commander.synthesize_path(path)
+        return os.path.exists(path)
 
     @staticmethod
     def open_with_notepad(file_path):

@@ -17,12 +17,19 @@ class ConfigFileService:
     db_file = os.path.join(FileProcessor.current_path(), "db.sqlite")
     kubernetes_config_files_dir = os.path.join(os.getcwd(), "local", "kube-configs")
     kubernetes_pod_log_files_dir = os.path.join(os.getcwd(), "local", "logs")
+    bot_chat_history = os.path.join(FileProcessor.current_path(), "chat_history.json")
 
     def get_config_file(self) -> ConfigFileModel:
         return ConfigFileModel.from_json(self.file_processor.reader.read(self.config_file, file_type=FileType.JSON))
 
     def save_config_file(self, file: ConfigFileModel):
         self.file_processor.writer.write(file_path=self.config_file, file_data=file.to_json(), file_type=FileType.JSON)
+
+    def get_chat_history(self):
+        return self.file_processor.reader.read(self.bot_chat_history, file_type=FileType.JSON)
+
+    def save_bot_chat_history(self, file):
+        self.file_processor.writer.write(file_path=self.bot_chat_history, file_data=file, file_type=FileType.JSON)
 
     def get_kubernetes_scale_config(self) -> KubernetesScaleConfigFileModel:
         return self.get_config_file().kubernetes.scale

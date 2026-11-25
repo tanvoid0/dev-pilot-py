@@ -20,26 +20,26 @@ class NpmScript(OptionGroupModel):
             ]
         )
 
-    def install(self):
+    def install(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.install(active_project.path))
 
-    def clean_install(self):
+    def clean_install(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.clean_install(active_project.path))
 
-    def start(self):
+    def start(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.start(active_project.start))
 
-    def test(self):
+    def test(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.test(active_project.path))
 
-    def lint(self):
+    def lint(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.lint(active_project.path))
 
-    def build(self):
+    def build(self, args):
         active_project = self.project_service.find_active_project()
         Commander.execute_shell(NpmCommandStringGenerator.build(active_project.path))

@@ -1,8 +1,7 @@
 import os
-import subprocess
+import sys
 import threading
 import time
-import sys
 
 RESET_TEXT = "\033[0m"  # Reset text color to default
 BLACK_TEXT = "\033[0;30m"
@@ -84,7 +83,10 @@ HIGH_INTENSITY_BACKGROUND_WHITE = "\033[0;107m"
 
 
 def color_text(color, text):
-    return color + str(text) + RESET_TEXT
+    colorize = os.getenv('COLOR')
+    if colorize:
+        return color + str(text) + RESET_TEXT
+    return text
 
 
 # FIXME: bug. creates buffer with no stop
@@ -113,4 +115,3 @@ def clear_console():
 
 def press_enter_to_continue():
     input(f"\nPress {color_text(RED_TEXT, 'Enter(*)')} to continue...")
-

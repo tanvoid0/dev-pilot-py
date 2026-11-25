@@ -7,6 +7,10 @@ class KubernetesCommandStringGenerator:
     def scale(namespace, deployment_name, stateful_set, down=False) -> str:
         return f"kubectl scale -n {namespace} {'statefulset' if stateful_set else 'deployment'} {deployment_name} --replicas={'0' if down else '1'};"
 
+    @staticmethod
+    def restart(namespace, deployment_name, stateful_set) -> str:
+        return f"kubectl rollout restart {'statefulset' if stateful_set else 'deployment'} {deployment_name} -n {namespace}"
+
     """
     Response:
     Kubernetes control plane is running at https://xx.xxx.xxx.xxx

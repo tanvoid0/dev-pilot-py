@@ -18,7 +18,7 @@ class DockerScript(OptionGroupModel):
                             lambda: self.build()),
                 OptionModel("dp", "Docker Push", "pushes docker image to cloud",
                             lambda: self.push()),
-                OptionModel("dbp", "Docker Build & Push", "Builds and pushes an image", lambda: self.build_and_push())
+                OptionModel("dbp", "Docker Build & Push", "Builds and pushes an image", lambda: self.build_and_push()),
             ]
         )
 
@@ -32,6 +32,7 @@ class DockerScript(OptionGroupModel):
                 DockerCommandStringGenerator.build(active_project.path, config.get_docker_image_for_active_project()),
                 DockerCommandStringGenerator.push(active_project.path, config.get_docker_image_for_active_project())
             ]
+
     def build_and_push(self, external=True):
         try:
             config = self.config_service.get_config()

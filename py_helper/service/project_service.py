@@ -9,7 +9,8 @@ from py_helper.processor.commander import Commander
 from py_helper.processor.db_processor import DBProcessor
 from py_helper.processor.file.file_processor import FileProcessor
 from py_helper.processor.print_processor import color_text, RED_TEXT, BRED_TEXT, BGREEN_TEXT, GREEN_TEXT, WHITE_TEXT, \
-    press_enter_to_continue
+    press_enter_to_continue, BYELLOW_TEXT
+from py_helper.processor.util_processor import UtilProcessor
 from py_helper.service.config_service import ConfigService
 from py_helper.service.kubernetes.kubernetes_service import KubernetesService
 
@@ -19,6 +20,12 @@ class ProjectService:
     config_service = ConfigService()
     kubernetes_service = KubernetesService()
     file_service = FileProcessor()
+    projects: [ProjectModel] = []
+    active_project: ProjectModel | None = None
+
+    def __init__(self):
+        self.find_active_project(safe_load=True)
+        self.refresh_project_list()
 
     def find_active_project(self, safe_load=False) -> ProjectModel | None:
         config = self.config_service.get_config()
@@ -51,13 +58,14 @@ class ProjectService:
         project_name = Commander.persistent_input("Enter Project Name", project_name)
         project_type = ProjectType.get_type(project_path)
         print(project_type.value)
-        deployment_id = self.kubernetes_service.get_deployments_with_cloud_data(choice=True)
+        ## FIXME: This is invalid code
+        deployment = self.kubernetes_service.get_deployments_with_cloud_data(choice=True)
 
         new_project = ProjectModel(
             path=project_path,
             name=project_name,
             type=project_type.value,
-            deployment_id=deployment_id
+            deployment_id=deployment
         )
         project_id = self.db.insert(new_project)
         self.update_project_path_config(project_id)
@@ -78,18 +86,25 @@ class ProjectService:
         project = session.query(ProjectModel).filter_by(path=path_name).first()
         return project
 
-    @staticmethod
-    def show_projects(active_project: ProjectModel | None, projects: [ProjectModel]):
+    def show_projects(self):
         data = []
-        header_color = BRED_TEXT
-        for project in projects:
-            if active_project is not None and Commander.synthesize_path(project.path) == active_project.path:
-                data_color = BGREEN_TEXT
+        header_color = BYELLOW_TEXT
+        index = 1
+        self.refresh_project_list()
+        self.refresh_active_project()
+        for project in self.projects:
+            if self.active_project is not None:
+                if Commander.synthesize_path(project.path) == self.active_project.path:
+                    data_color = BGREEN_TEXT
+                elif not Commander.path_exist(project.path):
+                    data_color = BRED_TEXT
+                else:
+                    data_color = WHITE_TEXT
             else:
                 data_color = WHITE_TEXT
             data.append(
                 (
-                    color_text(data_color, project.id),
+                    color_text(data_color, index),
                     color_text(data_color, project.path),
                     color_text(data_color, project.name),
                     color_text(data_color, project.type),
@@ -97,9 +112,10 @@ class ProjectService:
                     color_text(data_color, '' if project.deployment is None else project.deployment.service_name),
                 )
             )
+            index += 1
         # Create a DataFrame from the list of dictionaries
         headers = [
-            color_text(header_color, "id"),
+            color_text(header_color, "Index"),
             color_text(header_color, "path"),
             color_text(header_color, "name"),
             color_text(header_color, "type"),
@@ -111,32 +127,39 @@ class ProjectService:
         table = tabulate(data, headers=headers, tablefmt="grid")
         print(table)
 
+    def refresh_project_list(self):
+        self.projects = self.db.get_session().query(ProjectModel).options(joinedload(ProjectModel.deployment)).all()
+        return self.projects
+
+    def refresh_active_project(self):
+        self.active_project = self.find_active_project(safe_load=True)
+
     def show(self):
         print("Show projects")
-        session = self.db.get_session()
-        projects = session.query(ProjectModel).options(joinedload(ProjectModel.deployment)).all()
         while True:
             try:
-                print(f"Total Projects: {color_text(GREEN_TEXT, str(len(projects)))}")
-                active_project = self.find_active_project(safe_load=True)
-                self.show_projects(active_project, projects)
+                print(f"Total Projects: {color_text(GREEN_TEXT, str(len(self.projects)))}")
+                self.show_projects()
 
                 print("s. Select Project")
                 print("a. Add Project")
                 # print("b. Update Project")
-                # print("c. Remove Project")
+                print("r. Remove Project")
                 print("0. Go back")
-                choice = Commander.persistent_input("Enter choice")
+                choice, options = UtilProcessor.batch_picker()
                 if choice == '0':
                     break
                 elif choice == 's':
-                    self.select_project(projects, active_project)
+                    project = self.select_project(None if len(options) == 0 else options[0])
+                    self.update_project_path_config(project.id)
                 elif choice == 'a':
                     self.add_project()
-                elif choice == 'b':
-                    self.update_project()
-                elif choice == 'c':
-                    self.remove_project()
+                elif choice == 'u':
+                    project = self.select_project(None if len(options) == 0 else options[0])
+                    # self.update_project(project.id)
+                elif choice == 'r':
+                    project = self.select_project(None if len(options) == 0 else options[0])
+                    self.remove_project(project.id)
                 else:
                     print("Invalid choice...")
                     press_enter_to_continue()
@@ -144,19 +167,22 @@ class ProjectService:
                 ex.print()
                 press_enter_to_continue()
 
-    def select_project(self, projects, active_project):
-        if len(projects) <= 0:
+    def select_project(self, project_index: int = None):
+        if len(self.projects) <= 0:
             print("No Project to make a selection")
-            return
-        project_id = input(
-            f"Enter Project id to select ({color_text(BRED_TEXT, 0)} to exit, default :{color_text(BRED_TEXT, '0' if active_project is None else active_project.id)}): "
-        )
-        if project_id == active_project.id:
-            return
-        self.update_project_path_config(project_id)
+            return None
+        default_index = next((i for i, project in enumerate(self.projects) if project.id == self.active_project.id),
+                             None)
+        if project_index is None:
+            project_index = input(
+                f"Enter Project Index to select ({color_text(BRED_TEXT, 0)} to exit, default :{color_text(BRED_TEXT, '0' if self.active_project is None or default_index is None else default_index)}): "
+            )
+        if self.projects[int(project_index) - 1] == self.active_project.id:
+            return None
+        return self.projects[int(project_index) - 1]
 
-    def update_project(self):
-        pass
+    def update_project(self, project_id: int, project: ProjectModel):
+        raise "Implementation required"
 
-    def remove_project(self):
-        pass
+    def remove_project(self, project_id: int):
+        self.db.remove(ProjectModel, project_id)

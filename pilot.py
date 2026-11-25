@@ -69,6 +69,9 @@ if __name__ == "__main__":
             elif dictionary['run'] == 'diff_checker':
                 print("Launched a UI App.")
                 DiffApp.launch()
+            elif dictionary['run'] == 'bot':
+                print("Launch AI Bot")
+                Commander.execute('python bot_client.py', show=True)
         if "pilot" in dictionary:
             print("Pilot dictionary")
             dictionary['pilot'] = dictionary['pilot'].split(",")
@@ -80,11 +83,11 @@ if __name__ == "__main__":
                 active_project = ProjectService().find_active_project()
                 print(active_project.type)
                 if active_project.type == ProjectType.MAVEN.value:
-                    commands += MavenScript.auto_pilot()
+                    commands += MavenScript().auto_pilot()
             if AutoPilotSequence.DOCKER.value in dictionary['pilot']:
-                commands += DockerScript.auto_pilot()
+                commands += DockerScript().auto_pilot()
             if AutoPilotSequence.KUBERNETES.value in dictionary['pilot']:
-                commands += KubernetesScript.auto_pilot()
+                commands += KubernetesScript().auto_pilot()
 
             for command in commands:
                 print(f"Running command: {color_text(BRED_TEXT, command)}")

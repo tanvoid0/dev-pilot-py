@@ -1,0 +1,50 @@
+#pomodoro_container {
+    height: 100%; /* Full height */
+    width: 100%; /* Full width */
+    align: center middle; /* Center content */
+}
+
+#title {
+    color: green;
+    padding-bottom: 1;
+    text-align: center;
+}
+
+#timer_label {
+    color: red;
+    padding-top: 2;
+    padding-bottom: 2;
+    text-align: center;
+    height: 3;
+    content-align: center middle;
+}
+
+#session_label {
+    color: blue;
+    padding-top: 1;
+    padding-bottom: 1;
+    text-align: center;
+}
+
+#controls {
+    layout: horizontal;
+    align: center middle;
+}
+
+#start_button {
+    background: green;
+    color: white;
+    padding: 1;
+}
+
+#stop_button {
+    background: red;
+    color: white;
+    padding: 1;
+}
+
+#reset_button {
+    background: yellow;
+    color: black;
+    padding: 1;
+}

@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 
 from py_helper.models.base_model import BaseModel
+from py_helper.models.exception.app_exception import AppException
 from py_helper.models.exception.resource_not_found_exception import ResourceNotFoundException
 from py_helper.processor.file.file_processor import FileProcessor
 from py_helper.processor.print_processor import color_text, GREEN_TEXT, YELLOW_TEXT
@@ -63,6 +64,16 @@ class DBProcessor:
     def update(self, model, update_data):
         session = self.get_session()
         session.commit()
+
+    def remove(self, model, record_id: int):
+        session = self.get_session()
+        record = session.query(model).get(record_id)
+        if record:
+            session.delete(record)
+            session.commit()
+            print(f'Record with id {record_id} has been deleted.')
+        else:
+            raise AppException(f'Record with id {record_id} was not found.')
 
     def next_id_for_table(self, model):
         session = self.get_session()
